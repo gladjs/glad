@@ -37,7 +37,7 @@ module.exports = class RateLimiter {
   }
 
   setHeaders () {
-    if (options.setHeaders) {
+    if (this.options.setHeaders) {
       this.res.setHeader('X-Limit-Max', this.options.max);
       this.res.setHeader('X-Limit-Remaining', this.remaining);
     }
