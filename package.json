@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "A robust Node Js API framework.",
   "main": "index.js",
-  "engines" : {
-    "node" : ">=6.5"
+  "engines": {
+    "node": ">=6.5"
   },
   "scripts": {
     "test": "mocha tests",
@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "jsdoc-dash-template": "^2.0.1",
-    "latodoc": "github:smeijer/latodoc"
+    "latodoc": "github:smeijer/latodoc",
+    "mocha": "^3.3.0"
   }
 }
