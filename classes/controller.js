@@ -2,7 +2,6 @@ let ControllerCache = require('./controller-cache');
 let { chalk: {info}} = require('../namespace/console');
 let object = require('../namespace/object');
 let types = require('../namespace/type');
-const lru = require('redis-lru');
 
 /**
  * Controller Class.
@@ -283,7 +282,7 @@ class Controller {
    * ```
    */
   render (...args) {
-    path = this.viewPath;
+    let path = this.viewPath;
     args.unshift(path);
     this.res.render(args);
   }

@@ -1,6 +1,5 @@
 let { log, chalk } = require('../namespace/console');
 let { error }      = chalk;
-let { includes }   = require('lodash');
 let Server         = require('../classes/server');
 let Router         = require('../classes/router');
 let Initializer    = require('./initialize');
@@ -10,7 +9,7 @@ let session        = require('express-session');
 let sessionStore   = require('express-sessions');
 let { extend }     = require('../namespace/object');
 let Project        = require('../classes/project');
-let path, { join } = require('path');
+let { join }       = require('path');
 let RequestEnd     = require('./after-request');
 let Cache          = require('../namespace/cache');
 
@@ -50,14 +49,14 @@ module.exports = class Boot {
   }
 
   createServer () {
-    return new Promise( (resolve, reject) => {
+    return new Promise( resolve => {
       this.server = new Server(this.project);
       resolve();
     });
   }
 
   connectToRedis () {
-    return new Promise( (resolve, reject) => {
+    return new Promise( resolve => {
       let { config } = this.project;
       this.server.redis = redis.createClient(config.redis);
       resolve();
@@ -78,7 +77,7 @@ module.exports = class Boot {
     let { config } = this.project;
 
     if (config.orm === 'mongoose' && config.mongodb) {
-      return new Promise( (resolve, reject) => {
+      return new Promise( resolve => {
         let mongoose = require('mongoose');
         mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database);
         resolve();
@@ -87,7 +86,7 @@ module.exports = class Boot {
   }
 
   id () {
-    return new Promise((resolve, reject) => {
+    return new Promise( resolve => {
       let identifier = new RequestIdentifier(this.project);
       this.server.app.use(identifier.id.bind(identifier));
       resolve();
@@ -100,7 +99,7 @@ module.exports = class Boot {
   }
 
   getMiddleware () {
-    return new Promise((resolve, reject) => {
+    return new Promise( resolve => {
       this.project.middleware = require(join(this.project.projectPath, 'middleware'));
       resolve();
     });
@@ -115,25 +114,19 @@ module.exports = class Boot {
 
   // THIS NEEDS TO BE MOVED IN THE ROUTER CHAIN vvvvvvvvvvv
   after () {
-    return new Promise((resolve, reject) => {
+    return new Promise( resolve => {
       let after = new RequestEnd(this.project);
       this.server.app.use(after.end.bind(after));
       resolve();
     });
   }
 
-  // discoverAddons () {
-  //   addonDiscovery(this.project);
-  //   return Promise.resolve();
-  // }
-
-
   /**
    * If there is a session key in the config then implement sessions based on the config.
    * Otherwise it is assumed that a roll your own implementation or no sessions will be used.
    */
   session () {
-    return new Promise( (resolve, reject) => {
+    return new Promise( resolve => {
       let { config } = this.project;
       if (config.session) {
         let options = extend({
@@ -158,7 +151,7 @@ module.exports = class Boot {
    * Otherwise look for setupWebsockets in the config, if it exists, pass the setup over to there and waith for that promise to resolve.
    */
   attachSessionToWebsockets () {
-    return new Promise( (resolve, reject) => {
+    return new Promise( resolve => {
       let { config } = this.project;
       if (config.session) {
         this.server.websockets.use((socket, next) => {
@@ -168,7 +161,7 @@ module.exports = class Boot {
           if (conn.request.session) {
             conn.request.session.socketId = conn.id;
           } else {
-            console.error("ERROR: You are trying to attach a websocket id to a session, but there is NO session");
+            error("ERROR: You are trying to attach a websocket id to a session, but there is NO session");
           }
         });
         resolve();
@@ -224,7 +217,7 @@ module.exports = class Boot {
   }
 
   drawSocketIo () {
-    return new Promise((resolve, reject) => {
+    return new Promise( resolve => {
       try {
         let socketRouter  = require(`${this.project.projectPath}/sockets/router`);
         let socketPolicies = require(`${this.project.projectPath}/sockets/policies`);
@@ -252,7 +245,7 @@ module.exports = class Boot {
   }
 
   draw () {
-    return new Promise((resolve, reject) => {
+    return new Promise( resolve => {
       let key;
       for (key in this.router.routes) {
         if (this.router.routes.hasOwnProperty(key)) {
