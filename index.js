@@ -1,8 +1,6 @@
 global._Promise = Promise;
 global.Promise  = require('bluebird').Promise;
 
-let { chalk }   = require('./namespace/console');
-let { join }    = require('path');
 let Controller  = require('./classes/controller');
 let string      = new (require('./namespace/string'))();
 let cache       = require('./namespace/cache');
