@@ -118,6 +118,7 @@ module.exports = class Router {
     return (req, res, next) => {
       req.__rootViewPath = `${this.project.viewsPath}`;
       req.viewPath = req.__rootViewPath + config.action;
+      next();
     }
   }
 
