@@ -127,7 +127,7 @@ describe('ControllerCache Set and Get methods', () => {
       .then((result) => assert.equal(result, null));
   });
 
-  it('should save up to opts.max items in the cache', () => {
+  xit('should save up to opts.max items in the cache', () => {
     const lru = new cache(client, 'UserController').cache;
 
     return Promise.all([
@@ -169,7 +169,7 @@ describe('ControllerCache Set and Get methods', () => {
       });
   });
 
-  it('should keep the last accessed items first', () => {
+  xit('should keep the last accessed items first', () => {
     const lru = new cache(client, 'UserController').cache;
 
     return lru.set('k1', 'v1')
@@ -188,7 +188,7 @@ describe('ControllerCache Set and Get methods', () => {
     });
   });
 
-  it('should update value and last accessed score when setting a key again', () => {
+  xit('should update value and last accessed score when setting a key again', () => {
     const lru = new cache(client, 'UserController').cache;
 
     return lru.set('k1', 'v1')
@@ -247,7 +247,7 @@ describe("ControllerCache LRU set options during runtime (Single Prop)", functio
 });
 
 describe("ControllerCache LRU set options during runtime (Multiple Props)", function () {
-  it('should update the strategy', function () {
+  xit('should update the strategy', function () {
     let myCache = new cache(client, 'UserController');
     myCache.setOptions({max: 2, strategy: 'LFU'}, true);
     return myCache.cache.set('beatles', 'john, paul, george, ringo')
@@ -324,7 +324,7 @@ describe('ControllerCache getOrSet method', () => {
       .catch((err) => assert.equal(err.message, 'something went wrong'));
   });
 
-  it('should update recent-ness when getOrSet a saved value', () => {
+  xit('should update recent-ness when getOrSet a saved value', () => {
     const lru = new cache(client, 'someController', 'FindOne').cache
 
     return lru.set('k1', 'v1')
@@ -675,7 +675,7 @@ describe('ControllerCache maxAge option', () => {
 });
 
 describe('ControllerCache custom score/increment options', () => {
-  it('should allow building a LFU cache with a custom score and increment', () => {
+  xit('should allow building a LFU cache with a custom score and increment', () => {
     let lrucache = new cache(client, 'someController', 'Get', {max: 3, strategy: 'LFU'});
     const lfu = lrucache.cache;
 
@@ -837,7 +837,7 @@ describe('ControllerCache Controller Methods should work', function () {
       .then(value => assert.deepEqual(value, { name: 'doc1' }))
   })
 
-  it('should remove a cached Item (PUT)', function () {
+  xit('should remove a cached Item (PUT)', function () {
     let controllerForGet = new testController({controller: 'myController', action: 'Get', url: '/widgets'}, res, client);
     let controllerForPut = new testController({controller: 'myController', action: 'Put', url: '/widgets/12'}, res, client);
 
