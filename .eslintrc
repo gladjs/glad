@@ -9,5 +9,8 @@
       "modules": true,
       "experimentalObjectRestSpread": true
     },
+    "globals": {
+      "Glad": true
+    },
     "extends": "eslint:recommended"
 }
