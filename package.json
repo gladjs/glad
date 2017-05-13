@@ -45,7 +45,7 @@
       "name": "Charlie Mitchell"
     }
   ],
-  "homepage": "https://github.com/charliemitchell/glad#readme",
+  "homepage": "https://github.com/gladjs/glad#readme",
   "readme": "README.md",
   "keywords": [
     "glad",
@@ -56,7 +56,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/charliemitchell/glad.git"
+    "url": "git+ssh://git@github.com/gladjs/glad.git"
   },
   "devDependencies": {
     "jsdoc-dash-template": "^2.0.1",
