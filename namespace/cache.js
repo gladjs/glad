@@ -165,7 +165,7 @@ class Cache {
     this.redis.get(name, (err, data) => {
 
       if (err) {
-        return throw new Error(err);
+        throw new Error(err);
       }
 
       if (data) {
