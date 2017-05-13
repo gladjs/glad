@@ -1,8 +1,9 @@
 # Glad JS
 
+[![NPM](https://nodei.co/npm/glad.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/glad/)
+
 [![Code Climate](https://codeclimate.com/github/gladjs/glad/badges/gpa.svg)](https://codeclimate.com/github/gladjs/glad)
 [![Build Status](https://travis-ci.org/gladjs/glad.svg?branch=master)](https://travis-ci.org/gladjs/glad)
-[![NPM](https://nodei.co/npm/glad.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/glad/)
 [![Coverage Status](https://coveralls.io/repos/github/gladjs/glad/badge.svg?branch=master)](https://coveralls.io/github/gladjs/glad?branch=master)
 
 * [Glad JS Website](http://gladjs.com/)
