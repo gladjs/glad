@@ -148,10 +148,7 @@ class Cache {
    */
   resolve (name, resolve, time) {
 
-    let id;
-
     if (typeof name === typeof {}) {
-      id = name.id;
       name = name.url;
     }
 
@@ -190,7 +187,7 @@ class Cache {
    * @returns {boolean} - If the operation was successful / keys were removed * see (`redis.del` and `redis.flushall`).
    */
   clear (name = false) {
-    return new Promise( (resolve, reject) => {
+    return new Promise( resolve => {
       if (name) {
         return this.redis.del(name, resolve);
       } else {

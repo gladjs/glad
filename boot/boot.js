@@ -106,10 +106,8 @@ module.exports = class Boot {
   }
 
   getHooks () {
-    return new Promise((resolve, reject) => {
-      this.project.hooks = require(join(this.project.projectPath, 'hooks'));
-      resolve();
-    });
+    this.project.hooks = require(join(this.project.projectPath, 'hooks'));
+    return Promise.resolve();
   }
 
   // THIS NEEDS TO BE MOVED IN THE ROUTER CHAIN vvvvvvvvvvv

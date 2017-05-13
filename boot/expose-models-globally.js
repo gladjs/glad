@@ -5,13 +5,11 @@
 **/
 
 module.exports = function (router) {
-  return new Promise (function (resolve, reject) {
-    let models = Object.keys(router.models);
-    models.forEach(key => {
-      let chars = key.split('');
-      chars[0] = chars[0].toUpperCase();
-      global[chars.join('')] = router.models[key];
-    });
-    resolve();
+  let models = Object.keys(router.models);
+  models.forEach(key => {
+    let chars = key.split('');
+    chars[0] = chars[0].toUpperCase();
+    global[chars.join('')] = router.models[key];
   });
+  return Promise.resolve();
 }
