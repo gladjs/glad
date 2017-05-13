@@ -1,0 +1,65 @@
+{
+  "name": "glad",
+  "version": "1.0.0",
+  "description": "A robust Node Js API framework.",
+  "main": "index.js",
+  "engines" : {
+    "node" : ">=6.5"
+  },
+  "scripts": {
+    "test": "mocha tests",
+    "jsdoc": "jsdoc -c .jsdoc.conf.json -d jsdoc -r . ./README.md",
+    "docset": "jsdoc -c .jsdoc.conf.json -d docset -p -t node_modules/jsdoc-dash-template -r . ./README.md"
+  },
+  "author": "Charlie Mitchell",
+  "license": "MIT",
+  "bugs": {
+    "email": "charliesemailis@gmail.com",
+    "url": "http://github.com/charliemitchell/glad"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "bluebird": "^3.4.7",
+    "body-parser": "1.12.0",
+    "chai": "^3.5.0",
+    "chalk": "^1.1.3",
+    "exists-sync": "0.0.4",
+    "express": "^4.14.1",
+    "express-session": "1.15.2",
+    "express-sessions": "^1.0.6",
+    "lodash": "^4.17.4",
+    "redis": "2.6.3",
+    "redis-lru": "^0.4.1",
+    "socket.io": "^1.7.2",
+    "unicode": ">= 0.3.1"
+  },
+  "maintainers": [
+    {
+      "email": "charliesemailis@gmail.com",
+      "name": "Charlie Mitchell"
+    }
+  ],
+  "contributers": [
+    {
+      "email": "charliesemailis@gmail.com",
+      "name": "Charlie Mitchell"
+    }
+  ],
+  "homepage": "https://github.com/charliemitchell/glad#readme",
+  "readme": "README.md",
+  "keywords": [
+    "glad",
+    "rest",
+    "api",
+    "framework",
+    "express"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/charliemitchell/glad.git"
+  },
+  "devDependencies": {
+    "jsdoc-dash-template": "^2.0.1",
+    "latodoc": "github:smeijer/latodoc"
+  }
+}
