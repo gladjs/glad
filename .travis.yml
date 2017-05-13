@@ -3,8 +3,10 @@ language: node_js
 node_js:
   - "node"
 
-services:
-  - redis-server
+addons:
+  apt:
+    packages:
+      - redis-server
 
 after_success:
   - npm run coveralls
