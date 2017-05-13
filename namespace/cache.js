@@ -203,8 +203,6 @@ class Cache {
   clearWhere (pattern) {
     return new Promise( (resolve, reject) => {
       this.list(pattern).then(keys => {
-        let i = 0;
-        let len = keys.length;
         let queue = function () {
           if (keys.length) {
             this.clear(keys.shift()).then(queue).catch(err => {

@@ -16,7 +16,7 @@ module.exports = class RateLimiter {
         }
         resolve();
       }).catch(err => {
-        reject();
+        reject(err);
         this.onLimitation();
       });
     })
