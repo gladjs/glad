@@ -10,10 +10,7 @@ module.exports = class RateLimiter {
   limit () {
     return new Promise ((resolve, reject) => {
       this.lookup().then(() => {
-        if (!this.options.excludeHeaders) {
-          this.res.setHeader('X-Limit-Max', this.options.max);
-          this.res.setHeader('X-Limit-Remaining', this.remaining);
-        }
+        this.setHeaders();
         resolve();
       }).catch(err => {
         reject(err);
@@ -37,11 +34,10 @@ module.exports = class RateLimiter {
   }
 
   setHeaders () {
-    if (this.options.setHeaders) {
+    if (this.options.setHeaders || !this.options.excludeHeaders) {
       this.res.setHeader('X-Limit-Max', this.options.max);
       this.res.setHeader('X-Limit-Remaining', this.remaining);
     }
-    return Promise.resolve();
   }
 
   onLimitation () {
