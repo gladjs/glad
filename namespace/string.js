@@ -79,7 +79,7 @@ module.exports = class GladString {
   camelize (str) {
     return str.replace(CAMELIZE_REGEXP_1, function(match, separator, chr) {
       return chr ? chr.toUpperCase() : '';
-    }).replace(CAMELIZE_REGEXP_2, function(match, separator, chr) {
+    }).replace(CAMELIZE_REGEXP_2, function(match) {
       return match.toLowerCase();
     });
   }
