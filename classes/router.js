@@ -15,6 +15,8 @@ module.exports = class Router {
     this.models = {};
     this.errors = [];
     this.config = require(this.project.configPath);
+    this.policies = require(path.join(project.projectPath, "policies.js"));
+    this.logging = require(project.configPath).logHTTP;
   }
 
   /**
@@ -133,7 +135,7 @@ module.exports = class Router {
     let viewPath = this.setViewPath(config);
     method = method.toLowerCase();
     return this.server.app[method](path, this.rateLimit(config), bodyParser, viewPath, (req, res) => {
-      return new policy(this.project, this.server, config.policy, controller, action).restrict(req, res);
+      return new policy(this.policies, this.logging, this.server, config.policy, controller, action).restrict(req, res);
     });
   }
 
