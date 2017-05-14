@@ -58,7 +58,7 @@ describe("Policies", function () {
 
   it('should call the controller method when no policy is given', function () {
     spy.reset();
-    new Policy(policies, false, server, undefined, testController, 'myMethod').restrict({}, res);
+    new Policy(policies, true, server, undefined, testController, 'myMethod').restrict({}, res);
     assert(spy.calledOnce);
   });
 
