@@ -176,6 +176,7 @@ class Controller {
       return cache.cachedVersion(this.req).then(result => {
         if (result) {
           info('CACHE: HIT');
+          this.res.set('X-GLAD-CACHE-HIT', 'true');
           return this.res.type(options.type || 'json').send(result);
         } else {
           return fn.call(this, (content) => {
@@ -190,6 +191,11 @@ class Controller {
         exec  : () => {
           return new Promise( (resolve, reject) => {
             cache.cachedVersion(this.req).then(result => {
+
+              if (result) {
+                this.res.set('X-GLAD-CACHE-HIT', 'true');
+              }
+
               if (result && hitFn) {
                 hitFn(result);
                 resolve(result);
