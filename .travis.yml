@@ -17,5 +17,5 @@ services:
 after_success:
   - npm run coveralls
 
-after_install:
+before_script:
   - npm run install_mock
