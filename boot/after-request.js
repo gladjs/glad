@@ -24,8 +24,8 @@ module.exports = class RequestEnd {
   }
 
 
-  // mapEndingHook (req, res) {
-  //   ... Implement the onAfterEnd Hooks 
-  // }
+  mapEndingHook (req, res) {
+    // ... Implement the onAfterEnd Hooks
+  }
 
 }

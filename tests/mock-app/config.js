@@ -23,7 +23,7 @@ module.exports = {
   "mongodb": {
     "host": "localhost",
     "port": 27017,
-    "database": "testmongodb"
+    "database": "testdb123456789"
   },
   "orm": "mongoose"
-};
+}

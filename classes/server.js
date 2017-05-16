@@ -11,7 +11,6 @@ module.exports = class Server {
   }
 
   listen () {
-
     let { port, host, sock, backlog } = this.project.config;
 
     if (process.env['CONSOLE_MODE']) {
