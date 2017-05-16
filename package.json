@@ -11,7 +11,8 @@
     "cover": "istanbul cover _mocha tests",
     "coveralls": "npm run cover -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
     "jsdoc": "jsdoc -c .jsdoc.conf.json -d jsdoc -r . ./README.md",
-    "docset": "jsdoc -c .jsdoc.conf.json -d docset -p -t node_modules/jsdoc-dash-template -r . ./README.md"
+    "docset": "jsdoc -c .jsdoc.conf.json -d docset -p -t node_modules/jsdoc-dash-template -r . ./README.md",
+    "install_mock" : "(cd tests/mock-app && npm install)"
   },
   "author": "Charlie Mitchell",
   "license": "MIT",
