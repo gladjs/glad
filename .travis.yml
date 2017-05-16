@@ -14,3 +14,5 @@ services:
 
 after_success:
   - npm run coveralls
+script:
+  cd tests/mock-app && npm install
