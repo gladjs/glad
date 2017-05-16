@@ -10,6 +10,10 @@ module.exports = {
     } else {
       reject();
     }
+  },
+
+  goodToGo (req, res, accept, reject) {
+    accept();
   }
-  
+
 };

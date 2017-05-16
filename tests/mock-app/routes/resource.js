@@ -10,6 +10,11 @@ module.exports = {
     policy : 'admin'
   },
   {
+    path : '/resources/private',
+    action : 'Get',
+    policy : 'goodToGo'
+  },
+  {
     path : '/resources/:id',
     action : 'FindOne'
   }],

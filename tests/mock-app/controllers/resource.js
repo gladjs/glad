@@ -27,7 +27,11 @@ class ResourceController extends Glad.Controller {
 
   Post () {
     Resource.create(this.body)
-      .then(resource => this.res.status(201).json(resource))
+      .then(resource => {
+        this.actionCache('Get').reset().then(() => {
+          this.res.status(201).json(resource);
+        });
+      })
       .catch(err => this.error(err));
   }
 
