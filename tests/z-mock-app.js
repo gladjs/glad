@@ -124,7 +124,7 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
-  it ('ActionCache should clear posting and build back up', function (done) {
+  it ('ActionCache should clear when POSTing', function (done) {
     unirest.get('http://localhost:4242/resources').end(res1 => {
       assert.equal(res1.statusCode, 200);
       unirest.get('http://localhost:4242/resources').end(res2 => {
@@ -149,12 +149,6 @@ describe("Running a mock app with Glad features", function () {
                 let { body } = res;
                 assert.equal(res.statusCode, 200);
                 assert.equal(res.headers['x-glad-cache-hit'], undefined);
-                unirest.get('http://localhost:4242/resources').end(res => {
-                  let { body } = res;
-                  assert.equal(res.statusCode, 200);
-                  assert.equal(res.headers['x-glad-cache-hit'], 'true');
-                  done();
-                });
               });
             });
 
