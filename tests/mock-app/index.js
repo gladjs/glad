@@ -1,1 +1,1 @@
-(require('glad')['__boot__']());
+(require('../../index')['__boot__'](process.cwd()));

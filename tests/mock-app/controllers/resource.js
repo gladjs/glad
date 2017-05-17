@@ -5,13 +5,15 @@
  * @version 0.0.1
  */
 const { imports } = Glad;
-const Resource = imports('resourceModel');
+const Resource = require('../models/resource');
 
 class ResourceController extends Glad.Controller {
 
   Get () {
     this.cache({ max: 3, strategy: 'LFU' }, cache => {
+      console.log('Cache Miss');
       Resource.find().limit(15).exec().then(resources => {
+        console.log('found');
         this.res.json(resources) && cache(resources);
       }).catch(err => this.error(err))
     });

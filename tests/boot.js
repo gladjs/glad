@@ -7,11 +7,23 @@ describe('No files should have syntax errors and every file should be requirable
   });
 
   it("boot/expose-models-globally.js", function () {
-    assert.ok(require('../boot/expose-models-globally'));
+    let exposeGlobals = require('../boot/expose-models-globally');
+    exposeGlobals({models : [{fooze: true}]});
   });
 
   it("boot/initialize.js", function () {
     assert.ok(require('../boot/initialize'));
+  });
+
+  it("boot/initialize.js Should not throw an error for an invalid project, but it should reject the promise", function (done) {
+    let Initialize = require('../boot/initialize');
+    let initializer = new Initialize({}, {});
+    initializer.initialize().then(() => {
+      throw new Error('This should not be called');
+    }).catch(err => {
+      assert.ok(err);
+      done();
+    });
   });
 
   it("boot/request-identifier.js", function () {

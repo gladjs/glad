@@ -2,12 +2,21 @@ const path = require('path');
 const http = require('http');
 const assert = require('assert');
 const unirest = require('unirest');
+const io = require('socket.io-client');
 
 describe("Running a mock app with Glad features", function () {
 
-  before(function() {
+  var socket;
+
+  before(function(done) {
     process.chdir('tests/mock-app');
-    require(path.join(__dirname, 'mock-app/index'));
+    require(path.join(process.cwd(), 'index'));
+    done();
+  });
+
+  beforeEach(done => {
+    socket = io.connect('http://localhost:4242', {forceNew: true});
+    socket.on('connect', done);
   });
 
   after(function (done) {
@@ -17,6 +26,10 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
+  afterEach( done => {
+    if (socket.connected) socket.disconnect();
+    done();
+  });
 
   it ('should return a 404 for an unhandled route', done => {
     http.get('http://localhost:4242', res => {
@@ -150,5 +163,12 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
+
+  it('should communicate over ws', done => {
+    socket.emit('chat');
+    socket.emit('room1');
+    socket.emit('policyError');
+    done();
+  });
 
 });
