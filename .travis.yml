@@ -15,7 +15,7 @@ after_success:
 before_script:
   - npm prune
   - npm run install_mock
-  - redis-server
+  - redis-server --daemonize yes
 
 addons:
   apt:
