@@ -3,10 +3,6 @@ language: node_js
 cache:
   directories:
     - node_modules
-
-before_script:
-  - npm prune
-
 node_js:
   - "node"
 
@@ -17,7 +13,9 @@ after_success:
   - npm run coveralls
 
 before_script:
+  - npm prune
   - npm run install_mock
+  - redis-server
 
 addons:
   apt:
