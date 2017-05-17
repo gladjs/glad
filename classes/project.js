@@ -9,6 +9,7 @@ let { exit } = process;
 module.exports = class Project {
 
   constructor (projectPath) {
+    
     this.cliPath         = path.join(__dirname, '../..');
     this.projectPath     = projectPath || process.cwd();
     this.packagePath     = path.join(this.projectPath, "package.json");
@@ -38,7 +39,7 @@ module.exports = class Project {
   }
 
   isProject () {
-    
+
     let hasPackageFile = fs.existsSync(this.packagePath);
 
     if (hasPackageFile) {
