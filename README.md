@@ -15,6 +15,8 @@
 * [Node.js >= 6.5](http://nodejs.org/) (with NPM)
 * [Redis](http://redis.io/)
 
+Requires Redis 3.0.2 or greater, since caching uses the [XX option of ZADD](https://redis.io/commands/zadd#zadd-options-redis-302-or-greater).
+
 <br>
 
 ## Important This version of Glad JS no longer supports node < 6.5.

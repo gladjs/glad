@@ -11,7 +11,6 @@ node_js:
   - "node"
 
 services:
-  - redis-server
   - mongodb
 
 after_success:
@@ -19,3 +18,8 @@ after_success:
 
 before_script:
   - npm run install_mock
+
+addons:
+  apt:
+    packages:
+      - redis-server
