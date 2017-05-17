@@ -18,8 +18,8 @@ Promise.promisifyAll(redis.Multi.prototype);
 
 module.exports = class Boot {
 
-  constructor () {
-    this.project = new Project();
+  constructor (cwd = false) {
+    this.project = new Project(cwd);
     this.project.initialize();
   }
 
@@ -178,12 +178,13 @@ module.exports = class Boot {
     });
   }
 
-  exposeModels () {
-    return new Promise( (resolve, reject) => {
-      let method = require('./../boot/expose-models-globally');
-      method(this.router).then(resolve).catch(reject);
-    });
-  }
+  // Coming Soon...
+  // exposeModels () {
+  //   return new Promise( (resolve, reject) => {
+  //     let method = require('./../boot/expose-models-globally');
+  //     method(this.router).then(resolve).catch(reject);
+  //   });
+  // }
 
   middleware () {
     return new Promise( (resolve, reject) => {
@@ -223,7 +224,7 @@ module.exports = class Boot {
           socketRouter.forEach(route => {
             conn.on(route.event, data => {
               if (route.policy && socketPolicies[route.policy]) {
-                socketPolicies[route.policy](conn, function () {
+                socketPolicies[route.policy](conn, () => {
                   route.action.call(this.server.websockets, data, conn);
                 });
               } else if (route.policy) {

@@ -23,7 +23,7 @@ module.exports = global.Glad = {
   cache,
   Controller,
   'Date' : require('./namespace/date'),
-  __boot__ () {
-    new Boot().exec();
+  __boot__ (cwd) {
+    new Boot(cwd).exec();
   }
 };
