@@ -124,7 +124,7 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
-  xit ('ActionCache should clear after POSTing and build back up', function (done) {
+  it ('ActionCache should clear after POSTing and build back up', function (done) {
     unirest.get('http://localhost:4242/resources').end(res1 => {
       assert.equal(res1.statusCode, 200);
       unirest.get('http://localhost:4242/resources').end(res2 => {
