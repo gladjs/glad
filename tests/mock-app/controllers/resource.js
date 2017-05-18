@@ -11,20 +11,21 @@ class ResourceController extends Glad.Controller {
 
   Get () {
     this.cache({ max: 3, strategy: 'LFU' }, cache => {
-      console.log('Cache Miss');
       Resource.find().limit(15).exec().then(resources => {
-        console.log('found');
         this.res.json(resources) && cache(resources);
       }).catch(err => this.error(err))
     });
   }
 
   FindOne () {
-    this.cache({ max: 100, strategy: 'LFU' }, cache => {
-      Resource.findOne({ id: this.params.id}).exec().then(resource => {
-        this.res.json(resource).cache(resource);
+    this.cache({ max: 3, strategy: 'LFU' }).miss(cache => {
+      Resource.findOne({ _id: this.params.id}).exec().then(resource => {
+        cache(resource);
+        setTimeout(() => this.res.json(resource), 100);
       }).catch(err => this.error(err));
-    });
+    }).hit(data => {
+      setTimeout(() => this.res.json(data), 100)
+    }).exec()
   }
 
   Post () {

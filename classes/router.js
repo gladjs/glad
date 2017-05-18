@@ -109,7 +109,7 @@ module.exports = class Router {
   rateLimit (config) {
     return (req, res, next) => {
       if (config.rateLimit) {
-        new RateLimiter(this.server, req, res, config.rateLimit).limit().then(next);
+        new RateLimiter(this.server, req, res, config.rateLimit).limit().then(next).catch(err => {});
       } else {
         next();
       }
@@ -133,8 +133,9 @@ module.exports = class Router {
     let { path, controller, action } = config;
     let bodyParser = this.bodyParser(config);
     let viewPath = this.setViewPath(config);
+    let rateLimit = this.rateLimit(config);
     method = method.toLowerCase();
-    return this.server.app[method](path, this.rateLimit(config), bodyParser, viewPath, (req, res) => {
+    return this.server.app[method](path, rateLimit, bodyParser, viewPath, (req, res) => {
       return new policy(this.policies, this.logging, this.server, config.policy, controller, action).restrict(req, res);
     });
   }

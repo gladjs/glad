@@ -3,6 +3,8 @@ const http = require('http');
 const assert = require('assert');
 const unirest = require('unirest');
 const io = require('socket.io-client');
+let redis    = require("redis");
+let client = redis.createClient();
 
 describe("Running a mock app with Glad features", function () {
 
@@ -16,13 +18,13 @@ describe("Running a mock app with Glad features", function () {
 
   beforeEach(done => {
     socket = io.connect('http://localhost:4242', {forceNew: true});
-    socket.on('connect', done);
+    client.flushall(() => { done() });
   });
 
   after(function (done) {
     unirest('delete','http://localhost:4242/resources/all').end(x => {
       process.chdir('../../');
-      done();
+      client.flushall(done);
     });
   });
 
@@ -92,6 +94,28 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
+  it ('should cache the findOne using hit/miss syntax', done => {
+    unirest.get('http://localhost:4242/resources').end(res => {
+      let { body } = res;
+      let person = body[0];
+      let url = `http://localhost:4242/resources/${person._id}`;
+
+      assert.equal(res.statusCode, 200);
+
+      unirest.get(url).end(res => {
+        assert.equal(res.statusCode, 200);
+        assert.equal(person.name, "Tester 007");
+        unirest.get(url).end(res => {
+          assert.equal(res.statusCode, 200);
+          assert.equal(person.name, "Tester 007");
+          assert.equal(res.headers['x-glad-cache-hit'], 'true');
+          done();
+        });
+      });
+
+    });
+  });
+
   it ('should return a 403 Forbidden on a route where the policy is denied', function (done) {
     unirest.get('http://localhost:4242/resources/private')
       .end(res => {
@@ -150,7 +174,6 @@ describe("Running a mock app with Glad features", function () {
                 assert.equal(res.statusCode, 200);
                 assert.equal(res.headers['x-glad-cache-hit'], undefined);
                 unirest.get('http://localhost:4242/resources').end(res => {
-                  let { body } = res;
                   assert.equal(res.statusCode, 200);
                   assert.equal(res.headers['x-glad-cache-hit'], 'true');
                   done();
@@ -163,6 +186,120 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
+  it('Rate Limiter Should Return a 200 - 429 and headers', function (done) {
+    unirest.get('http://localhost:4242/resources').end(res => {
+      assert.equal(res.headers['x-limit-max'], '10');
+      assert.equal(res.headers['x-limit-remaining'], '9');
+      unirest.get('http://localhost:4242/resources').end(res => {
+        assert.equal(res.headers['x-limit-max'], '10');
+        assert.equal(res.headers['x-limit-remaining'], '8');
+        unirest.get('http://localhost:4242/resources').end(res => {
+          assert.equal(res.headers['x-limit-max'], '10');
+          assert.equal(res.headers['x-limit-remaining'], '7');
+          unirest.get('http://localhost:4242/resources').end(res => {
+            assert.equal(res.headers['x-limit-max'], '10');
+            assert.equal(res.headers['x-limit-remaining'], '6');
+            unirest.get('http://localhost:4242/resources').end(res => {
+              assert.equal(res.headers['x-limit-max'], '10');
+              assert.equal(res.headers['x-limit-remaining'], '5');
+              unirest.get('http://localhost:4242/resources').end(res => {
+                assert.equal(res.headers['x-limit-max'], '10');
+                assert.equal(res.headers['x-limit-remaining'], '4');
+                unirest.get('http://localhost:4242/resources').end(res => {
+                  assert.equal(res.headers['x-limit-max'], '10');
+                  assert.equal(res.headers['x-limit-remaining'], '3');
+                  // Dying Here
+                  unirest.get('http://localhost:4242/resources').end(res => {
+                    assert.equal(res.headers['x-limit-max'], '10');
+                    assert.equal(res.headers['x-limit-remaining'], '2');
+                    unirest.get('http://localhost:4242/resources').end(res => {
+                      assert.equal(res.headers['x-limit-max'], '10');
+                      assert.equal(res.headers['x-limit-remaining'], '1');
+                      unirest.get('http://localhost:4242/resources').end(res => {
+                        assert.equal(res.statusCode, 429);
+                        unirest.get('http://localhost:4242/resources').end(res => {
+                          assert.equal(res.statusCode, 429);
+                          // should reset
+                          setTimeout(() => {
+                            unirest.get('http://localhost:4242/resources').end(res => {
+                              assert.equal(res.statusCode, 200);
+                              assert.equal(res.headers['x-limit-max'], '10');
+                              assert.equal(res.headers['x-limit-remaining'], '9');
+                              done();
+                            });
+                          }, 800);
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+
+  it('should rate limit with blast protection', function (done) {
+
+    let url = 'http://localhost:4242/resources/blast-protected';
+    let promise = () => {
+      return new Promise((resolve, reject) => {
+        unirest.get(url).end(res => {
+          resolve(res.statusCode);
+        });
+      });
+    };
+
+    let promises = [
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise(),
+      promise()
+    ];
+
+    Promise.all(promises).then(values => {
+      assert(values.filter(x => (x === 429)).length > promises.length - 2);
+      done();
+    });
+
+  });
 
   it('should communicate over ws', done => {
     socket.emit('chat');

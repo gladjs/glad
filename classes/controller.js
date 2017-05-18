@@ -193,7 +193,7 @@ class Controller {
             cache.cachedVersion(this.req).then(result => {
 
               if (result) {
-                this.res.set('X-GLAD-CACHE-HIT', 'true');
+                this.res.set('X-Glad-Cache-Hit', 'true');
               }
 
               if (result && hitFn) {

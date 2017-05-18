@@ -2,7 +2,28 @@ module.exports = {
 
   GET : [{
     path : '/resources',
-    action : 'Get'
+    action : 'Get',
+    rateLimit : {
+      requests : 10,
+      per : 800,
+      onLimit : {
+        code : 429,
+        msg  : "You can only read 10 resources per second. Please try again later"
+      }
+    }
+  },
+  {
+    path : '/resources/blast-protected',
+    action : 'Get',
+    rateLimit : {
+      requests : 10,
+      per : 800,
+      waitTime : 100,
+      onLimit : {
+        code : 429,
+        msg  : "You can only read 10 resources per second. Please try again later"
+      }
+    }
   },
   {
     path : '/resources/private',
@@ -10,7 +31,7 @@ module.exports = {
     policy : 'admin'
   },
   {
-    path : '/resources/private',
+    path : '/resources/not-private',
     action : 'Get',
     policy : 'goodToGo'
   },

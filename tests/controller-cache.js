@@ -127,7 +127,7 @@ describe('ControllerCache Set and Get methods', () => {
       .then((result) => assert.equal(result, null));
   });
 
-  xit('should save up to opts.max items in the cache', () => {
+  it('should save up to opts.max items in the cache', () => {
     const lru = new cache(client, 'UserController').cache;
 
     return Promise.all([
@@ -169,7 +169,7 @@ describe('ControllerCache Set and Get methods', () => {
       });
   });
 
-  xit('should keep the last accessed items first', () => {
+  it('should keep the last accessed items first', () => {
     const lru = new cache(client, 'UserController').cache;
 
     return lru.set('k1', 'v1')
@@ -188,7 +188,7 @@ describe('ControllerCache Set and Get methods', () => {
     });
   });
 
-  xit('should update value and last accessed score when setting a key again', () => {
+  it('should update value and last accessed score when setting a key again', () => {
     const lru = new cache(client, 'UserController').cache;
 
     return lru.set('k1', 'v1')
@@ -247,7 +247,7 @@ describe("ControllerCache LRU set options during runtime (Single Prop)", functio
 });
 
 describe("ControllerCache LRU set options during runtime (Multiple Props)", function () {
-  xit('should update the strategy', function () {
+  it('should update the strategy', function () {
     let myCache = new cache(client, 'UserController');
     myCache.setOptions({max: 2, strategy: 'LFU'}, true);
     return myCache.cache.set('beatles', 'john, paul, george, ringo')
@@ -259,6 +259,21 @@ describe("ControllerCache LRU set options during runtime (Multiple Props)", func
         assert.equal(result, null);
       })
   });
+
+  it('should update the namespace', function () {
+    let myCache = new cache(client, 'UserController');
+    myCache.setOptions({max: 2, strategy: 'LFU', namespace: 'fooze'}, true);
+    return myCache.cache.set('beatles', 'john, paul, george, ringo')
+      .then(() => myCache.cache.get('beatles')) // accessed twice
+      .then(() => myCache.cache.set('zeppelin', 'jimmy, robert, john, bonzo'))
+      .then(() => myCache.cache.set('floyd', 'david, roger, syd, richard, nick')) // cache full, remove least frequently accessed
+      .then(() => myCache.cache.get('zeppelin'))
+      .then(result => {
+        assert.equal(result, null);
+        assert.equal(myCache.namespace, 'UserController#UNDEFINED-ACTION-fooze');
+      })
+  });
+
 });
 
 describe('ControllerCache getOrSet method', () => {
@@ -324,7 +339,7 @@ describe('ControllerCache getOrSet method', () => {
       .catch((err) => assert.equal(err.message, 'something went wrong'));
   });
 
-  xit('should update recent-ness when getOrSet a saved value', () => {
+  it('should update recent-ness when getOrSet a saved value', () => {
     const lru = new cache(client, 'someController', 'FindOne').cache
 
     return lru.set('k1', 'v1')
@@ -675,7 +690,7 @@ describe('ControllerCache maxAge option', () => {
 });
 
 describe('ControllerCache custom score/increment options', () => {
-  xit('should allow building a LFU cache with a custom score and increment', () => {
+  it('should allow building a LFU cache with a custom score and increment', () => {
     let lrucache = new cache(client, 'someController', 'Get', {max: 3, strategy: 'LFU'});
     const lfu = lrucache.cache;
 
@@ -837,7 +852,7 @@ describe('ControllerCache Controller Methods should work', function () {
       .then(value => assert.deepEqual(value, { name: 'doc1' }))
   })
 
-  xit('should remove a cached Item (PUT)', function () {
+  it('should remove a cached Item (PUT)', function () {
     let controllerForGet = new testController({controller: 'myController', action: 'Get', url: '/widgets'}, res, client);
     let controllerForPut = new testController({controller: 'myController', action: 'Put', url: '/widgets/12'}, res, client);
 
@@ -850,7 +865,7 @@ describe('ControllerCache Controller Methods should work', function () {
   })
 
 
-  xit('should remove a cached Item (DELETE)', function () {
+  it('should remove a cached Item (DELETE)', function () {
     let controllerForGet = new testController({controller: 'myController', action: 'Get', url: '/widgets'}, res, client);
     let controllerForFindOne = new testController({controller: 'myController', action: 'FindOne', url: '/widgets/12'}, res, client);
     let controllerForDelete = new testController({controller: 'myController', action: 'Delete', url: '/widgets/12'}, res, client);

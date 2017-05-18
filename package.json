@@ -7,12 +7,12 @@
     "node": ">=6.5"
   },
   "scripts": {
-    "test": "mocha tests",
+    "test": "NODE_ENV=test mocha tests",
     "cover": "istanbul cover _mocha tests",
     "coveralls": "npm run cover -- --report lcovonly && cat ./coverage/lcov.info | coveralls",
     "jsdoc": "jsdoc -c .jsdoc.conf.json -d jsdoc -r . ./README.md",
     "docset": "jsdoc -c .jsdoc.conf.json -d docset -p -t node_modules/jsdoc-dash-template -r . ./README.md",
-    "install_mock" : "(cd tests/mock-app && npm install)"
+    "install_mock": "(cd tests/mock-app && npm install)"
   },
   "author": "Charlie Mitchell",
   "license": "MIT",
@@ -30,6 +30,7 @@
     "express-session": "1.15.2",
     "express-sessions": "^1.0.6",
     "lodash": "^4.17.4",
+    "microtime-nodejs": "^1.0.0",
     "redis": "2.6.3",
     "redis-lru": "^0.4.1",
     "socket.io": "^1.7.2",
