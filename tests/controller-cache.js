@@ -14,7 +14,10 @@ const dbsize = () => new Promise((resolve, reject) =>
 const tick = (time) => new Promise((resolve) => setTimeout(resolve, time || 2));
 const promise = (func) => new Promise(resolve => func(resolve));
 
-beforeEach((done) => client.flushdb(() => done()));
+beforeEach(done => client.flushdb(done));
+afterEach(done => client.flushdb(done));
+before(done => client.flushdb(done));
+after(done => client.flushdb(done));
 
 describe('ControllerCache Handling various data types', function () {
 
@@ -870,7 +873,7 @@ describe('ControllerCache Controller Methods should work', function () {
     let controllerForFindOne = new testController({controller: 'myController', action: 'FindOne', url: '/widgets/12'}, res, client);
     let controllerForDelete = new testController({controller: 'myController', action: 'Delete', url: '/widgets/12'}, res, client);
 
-    controllerForGet.Get()
+    return controllerForGet.Get()
       .then(() => controllerForFindOne.FindOne())
       .then(() => controllerForGet.cacheStore.get('/widgets'))
       .then(value => assert.deepEqual(value, [{name: 'doc1'}]))

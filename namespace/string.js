@@ -152,10 +152,6 @@ module.exports = class GladString {
     return lodash.escapeRegExp(str);
   }
 
-  pad (...args) {
-    return lodash.pad.apply(lodash, args);
-  }
-
   repeat (...args) {
     return lodash.repeat.apply(lodash, args);
   }

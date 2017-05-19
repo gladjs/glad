@@ -243,7 +243,7 @@ describe("Running a mock app with Glad features", function () {
 
 
   it('should rate limit with blast protection', function (done) {
-
+    this.timeout(5000);
     let url = 'http://localhost:4242/resources/blast-protected';
     let promise = () => {
       return new Promise((resolve, reject) => {
@@ -252,50 +252,16 @@ describe("Running a mock app with Glad features", function () {
         });
       });
     };
+    let promises = [];
+    let i = 0;
+    let count = 200;
 
-    let promises = [
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise(),
-      promise()
-    ];
+    for (i; i < count; i += 1) {
+      promises.push(promise());
+    }
 
     Promise.all(promises).then(values => {
-      assert(values.filter(x => (x === 429)).length > promises.length - 2);
+      assert(values.filter(x => (x === 429)).length > (count / 2));
       done();
     });
 

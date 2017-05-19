@@ -28,6 +28,11 @@ class ResourceController extends Glad.Controller {
     }).exec()
   }
 
+  blastChecker () {
+    // simulate a long running database lookup.
+    setTimeout(() => this.res.json({}), 220);
+  }
+
   Post () {
     Resource.create(this.body)
       .then(resource => {

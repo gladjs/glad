@@ -14,7 +14,7 @@ module.exports = {
   },
   {
     path : '/resources/blast-protected',
-    action : 'Get',
+    action : 'blastChecker',
     rateLimit : {
       requests : 10,
       per : 800,

@@ -105,4 +105,123 @@ describe("String Tests", function () {
     );
   });
 
+  it("camelize:: should Camelize string", function () {
+    assert.equal(
+      string.camelize("fooze-barz"),
+      "foozeBarz"
+    );
+  });
+
+  it("titleize:: should titleize string", function () {
+    assert.equal(
+      string.titelize("fooze barz"),
+      "Fooze Barz"
+    );
+  });
+
+  it("slasherize:: should slasherize string", function () {
+    assert.equal(
+      string.slasherize("fooze barz"),
+      "fooze/barz"
+    );
+  });
+
+  it("reverseSlasherize:: should reverseSlasherize string", function () {
+    assert.equal(
+      string.reverseSlasherize("fooze barz"),
+      "barz/fooze"
+    );
+  });
+
+  it("underscore:: should underscore string", function () {
+    assert.equal(
+      string.underscore("fooze barz"),
+      "fooze_barz"
+    );
+  });
+
+  it("cleanSpaces:: should cleanSpaces string", function () {
+    assert.equal(
+      string.cleanSpaces("fooze  barz"),
+      "fooze barz"
+    );
+  });
+
+  it("endsWith:: should return true if a string ends with fooze", function () {
+    assert.equal(
+      string.endsWith("fooze  barz fooze", "fooze"),
+      true
+    );
+  });
+
+  it("endsWith:: should return false if a string does not end with fooze", function () {
+    assert.equal(
+      string.endsWith("fooze  barz", "fooze"),
+      false
+    );
+  });
+
+  it("escape:: should escape a string", function () {
+    assert.equal(
+      string.escape("fred, barney, & pebbles"),
+      "fred, barney, &amp; pebbles"
+    );
+  });
+
+  it("uescape:: should unescape a string", function () {
+    assert.equal(
+      string.unescape("fred, barney, &amp; pebbles"),
+      "fred, barney, & pebbles"
+    );
+  });
+
+  it('escapeRegExp:: should escape a string for use in regexp', function () {
+    assert.equal(
+      string.escapeRegExp('[lodash](https://lodash.com/)'),
+      "\\[lodash\\]\\(https://lodash\\.com/\\)"
+    );
+  });
+
+  it("repeat:: should repeat a string 2 times", function () {
+    assert.equal(
+      string.repeat("glad", 2),
+      "gladglad"
+    );
+  });
+
+  it("repeat:: should repeat a string 2 times with spacing", function () {
+    assert.equal(
+      string.repeat("glad ", 2),
+      "glad glad "
+    );
+  });
+
+  it("startsWith:: should return true if a string starts with fooze", function () {
+    assert.equal(
+      string.startsWith("fooze  barz", "fooze"),
+      true
+    );
+  });
+
+  it("startsWith:: should return false if a string does not start with fooze", function () {
+    assert.equal(
+      string.startsWith("x fooze  barz", "fooze"),
+      false
+    );
+  });
+
+  it("words:: should split a string based on words", function () {
+    assert.deepEqual(
+      string.words('fred, barney, & pebbles'),
+      ['fred', 'barney', 'pebbles']
+    );
+  });
+
+  it("words:: should split a string based on words and keep elements by regexp", function () {
+    assert.deepEqual(
+      string.words('fred, barney, & pebbles', /[^, ]+/g),
+      ['fred', 'barney', '&', 'pebbles']
+    );
+  });
+
 });
