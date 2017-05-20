@@ -240,21 +240,8 @@ The combination of request method and url are used to determine the action to ta
 * path : matching url
 * action : the controller method to call when this route is matched
 * policy : the policy method to call in order to determine if the action is allowed. * see policies.js
-* rateLimit : A rate limiter configuration (See Below)
 * bodyParser: A body parser configuration (See Below)
 
-You can also specify rate limiting per endpoint.
-
-```
-rateLimit : {
-  max : 30,
-  per : 1000 * 30,
-  onLimit : {
-    code : 429,
-    msg  : "You can only read 30 users per hour. Please try again in an hour"
-  }
-}
-```
 
 If you need to override the default body parser or the max body limit you can do this per endpoint.
 
