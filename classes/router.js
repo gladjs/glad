@@ -3,7 +3,6 @@ const path    = require('path');
 const { chalk } = require('./../namespace/console');
 const policy  = require('./policy');
 const bodyParser = require('body-parser');
-const RateLimiter = require('./rate-limit');
 
 module.exports = class Router {
 
@@ -106,16 +105,6 @@ module.exports = class Router {
     return bodyParser[type](options);
   }
 
-  rateLimit (config) {
-    return (req, res, next) => {
-      if (config.rateLimit) {
-        new RateLimiter(this.server, req, res, config.rateLimit).limit().then(next).catch(err => {});
-      } else {
-        next();
-      }
-    }
-  }
-
   setViewPath (config) {
     return (req, res, next) => {
       req.__rootViewPath = `${this.project.viewsPath}`;
@@ -133,9 +122,8 @@ module.exports = class Router {
     let { path, controller, action } = config;
     let bodyParser = this.bodyParser(config);
     let viewPath = this.setViewPath(config);
-    let rateLimit = this.rateLimit(config);
     method = method.toLowerCase();
-    return this.server.app[method](path, rateLimit, bodyParser, viewPath, (req, res) => {
+    return this.server.app[method](path, bodyParser, viewPath, (req, res) => {
       return new policy(this.policies, this.logging, this.server, config.policy, controller, action).restrict(req, res);
     });
   }

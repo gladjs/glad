@@ -6,7 +6,7 @@
 module.exports = {
   array : typeof [],
   object: typeof {},
-  function : typeof function () {},
+  function : typeof Function,
   number : typeof 1,
   boolean : typeof true,
   symbol : typeof Symbol(),

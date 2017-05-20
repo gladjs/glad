@@ -4,4 +4,11 @@
   have sane defaults, and make exceptions when needed.
 */
 
-module.exports = [];
+module.exports = [
+
+  (app) => {
+    app.app.set('view engine', 'pug');
+    return Promise.resolve();
+  }
+
+];

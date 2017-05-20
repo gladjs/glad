@@ -8,8 +8,6 @@ let client = redis.createClient();
 
 describe("Running a mock app with Glad features", function () {
 
-  var socket;
-
   before(function(done) {
     process.chdir('tests/mock-app');
     require(path.join(process.cwd(), 'index'));
@@ -17,8 +15,7 @@ describe("Running a mock app with Glad features", function () {
   });
 
   beforeEach(done => {
-    socket = io.connect('http://localhost:4242', {forceNew: true});
-    client.flushall(() => { done() });
+    client.flushall(() => { done(); });
   });
 
   after(function (done) {
@@ -26,11 +23,6 @@ describe("Running a mock app with Glad features", function () {
       process.chdir('../../');
       client.flushall(done);
     });
-  });
-
-  afterEach( done => {
-    if (socket.connected) socket.disconnect();
-    done();
   });
 
   it ('should return a 404 for an unhandled route', done => {
@@ -186,92 +178,15 @@ describe("Running a mock app with Glad features", function () {
     });
   });
 
-  it('Rate Limiter Should Return a 200 - 429 and headers', function (done) {
-    unirest.get('http://localhost:4242/resources').end(res => {
-      assert.equal(res.headers['x-limit-max'], '10');
-      assert.equal(res.headers['x-limit-remaining'], '9');
-      unirest.get('http://localhost:4242/resources').end(res => {
-        assert.equal(res.headers['x-limit-max'], '10');
-        assert.equal(res.headers['x-limit-remaining'], '8');
-        unirest.get('http://localhost:4242/resources').end(res => {
-          assert.equal(res.headers['x-limit-max'], '10');
-          assert.equal(res.headers['x-limit-remaining'], '7');
-          unirest.get('http://localhost:4242/resources').end(res => {
-            assert.equal(res.headers['x-limit-max'], '10');
-            assert.equal(res.headers['x-limit-remaining'], '6');
-            unirest.get('http://localhost:4242/resources').end(res => {
-              assert.equal(res.headers['x-limit-max'], '10');
-              assert.equal(res.headers['x-limit-remaining'], '5');
-              unirest.get('http://localhost:4242/resources').end(res => {
-                assert.equal(res.headers['x-limit-max'], '10');
-                assert.equal(res.headers['x-limit-remaining'], '4');
-                unirest.get('http://localhost:4242/resources').end(res => {
-                  assert.equal(res.headers['x-limit-max'], '10');
-                  assert.equal(res.headers['x-limit-remaining'], '3');
-                  // Dying Here
-                  unirest.get('http://localhost:4242/resources').end(res => {
-                    assert.equal(res.headers['x-limit-max'], '10');
-                    assert.equal(res.headers['x-limit-remaining'], '2');
-                    unirest.get('http://localhost:4242/resources').end(res => {
-                      assert.equal(res.headers['x-limit-max'], '10');
-                      assert.equal(res.headers['x-limit-remaining'], '1');
-                      unirest.get('http://localhost:4242/resources').end(res => {
-                        assert.equal(res.statusCode, 429);
-                        unirest.get('http://localhost:4242/resources').end(res => {
-                          assert.equal(res.statusCode, 429);
-                          // should reset
-                          setTimeout(() => {
-                            unirest.get('http://localhost:4242/resources').end(res => {
-                              assert.equal(res.statusCode, 200);
-                              assert.equal(res.headers['x-limit-max'], '10');
-                              assert.equal(res.headers['x-limit-remaining'], '9');
-                              done();
-                            });
-                          }, 800);
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
-
-
-  it('should rate limit with blast protection', function (done) {
-    this.timeout(5000);
-    let url = 'http://localhost:4242/resources/blast-protected';
-    let promise = () => {
-      return new Promise((resolve, reject) => {
-        unirest.get(url).end(res => {
-          resolve(res.statusCode);
-        });
-      });
-    };
-    let promises = [];
-    let i = 0;
-    let count = 200;
-
-    for (i; i < count; i += 1) {
-      promises.push(promise());
-    }
-
-    Promise.all(promises).then(values => {
-      assert(values.filter(x => (x === 429)).length > (count / 2));
+  it('should communicate over ws', done => {
+    let socket = io.connect('http://localhost:4242', {forceNew: true});
+    socket.on('connect', function () {
+      socket.emit('chat');
+      socket.emit('room1');
+      socket.emit('policyError');
+      if (socket.connected) socket.disconnect();
       done();
     });
-
-  });
-
-  it('should communicate over ws', done => {
-    socket.emit('chat');
-    socket.emit('room1');
-    socket.emit('policyError');
-    done();
   });
 
 });

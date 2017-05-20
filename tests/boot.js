@@ -38,10 +38,6 @@ describe('No files should have syntax errors and every file should be requirable
     assert.ok(require('../classes/controller'));
   });
 
-  it("classes/rate-limit.js", function () {
-    assert.ok(require('../classes/rate-limit'));
-  });
-
   it("classes/policy.js", function () {
     assert.ok(require('../classes/policy'));
   });

@@ -10,6 +10,7 @@ module.exports = class RequestEnd {
 
   end (req, res, next) {
     req.on("end", () => {
+
       if (this.logging) {
         let code = res.statusCode;
         let _color = (code >= 400 && code < 500) ? "yellow" : (code >= 500) ? "red" : "green";
@@ -18,6 +19,7 @@ module.exports = class RequestEnd {
         );
         timeEnd(`Timing    ${req.id}`);
       }
+
       this.mapEndingHook(req, res);
     });
     next();
