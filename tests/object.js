@@ -1,10 +1,11 @@
 const assert = require('assert');
+let object = require('../namespace/object');
 let {
   hasPath, set, get,
   extend, clone,
   arrayToObject, invert,
-  select, drop, selectCombination, format
-} = require('../namespace/object');
+  select, drop, selectCombination, format, explode
+} = object;
 
 describe("Object Methods", function () {
 
@@ -133,6 +134,54 @@ describe("Object Methods", function () {
     let a = { name: 'fred', email: 'me@mail.com', data: { stuff: { a: 'a', b: 'b'}, more : { c: 'value'} } };
     let o = format(a, ['name', 'email', ['stuff', 'data.stuff.a' ], ['value', 'data.more.c']]);
     assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', stuff: 'a', value : 'value'});
+  });
+
+  it("explode:: should explode an object", function () {
+    var row = {
+      'id': 2,
+      'contact.name.first': 'John',
+      'contact.name.last': 'Doe',
+      'contact.email': 'example@gmail.com',
+      'contact.info.about.me': 'classified',
+      'devices.0': 'mobile',
+      'devices.1': 'laptop',
+      'some.other.things.0': 'this',
+      'some.other.things.1': 'that',
+      'some.other.stuff.0.key': 'stuff'
+    };
+
+    object.explode(row);
+
+    assert.deepEqual(row, {
+      "id": 2,
+      "contact": {
+        "name": {
+          "first": "John",
+          "last": "Doe"
+        },
+        "email": "example@gmail.com",
+        "info": {
+          "about": {
+            "me": "classified"
+          }
+        }
+      },
+      "devices": [
+        "mobile",
+        "laptop"
+      ],
+      "some": {
+        "other": {
+          "things": [
+            "this",
+            "that"
+          ],
+          stuff : [{
+            key : "stuff"
+          }]
+        }
+      }
+    });
   });
 
 });

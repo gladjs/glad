@@ -2,6 +2,8 @@ const lodash = require('lodash');
 
 module.exports = {
 
+  lodash,
+
   extend (...args) {
     return lodash.extend.apply(lodash, args);
   },
@@ -96,6 +98,16 @@ module.exports = {
       }
     }
     return o;
+  },
+
+  explode (obj) {
+    let keys = Object.keys(obj);
+    keys.forEach(key => {
+      let value = obj[key];
+      delete obj[key];
+      lodash.setWith(obj, key,value);
+    });
+
   }
 
 }
