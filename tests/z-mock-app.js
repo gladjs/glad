@@ -180,8 +180,8 @@ describe("Running a mock app with Glad features", function () {
 
   it ('Should render a page using this.render', function (done) {
     unirest.get('http://localhost:4242/resources/my-page').end(res1 => {
-      assert.equal(res1.statusCode, 200);
       assert.equal(res1.body, '<h1>Charlie</h1><p>testing</p>');
+      assert.equal(res1.statusCode, 200);
       done();
     });
   });
