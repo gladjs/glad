@@ -29,9 +29,16 @@ class ResourceController extends Glad.Controller {
   }
 
   myHtmlPage () {
-    // this.cache({ max: 300, strategy: 'LFU', type: 'html' }, cache => {
-      this.render('my-page', { name : 'Charlie', up_to: 'testing' });
-    // });
+    this.cache({ max: 300, strategy: 'LFU', type: 'html' }, cache => {
+      this.render('my-page', { name : 'Charlie', up_to: 'testing' }, (err, data) => {
+        if (!err && data) {
+          this.res.send(data);
+          cache(data);
+        } else {
+          this.res.status(500).end();
+        }
+      });
+    });
   }
 
   blastChecker () {
