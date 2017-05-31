@@ -32,6 +32,7 @@ class ResourceController extends Glad.Controller {
     this.cache({ max: 300, strategy: 'LFU', type: 'html' }, cache => {
       this.render('my-page', { name : 'Charlie', up_to: 'testing' }, (err, data) => {
         this.res.send(data);
+        console.log(data);
         cache(data);
       });
     });
