@@ -28,6 +28,15 @@ class ResourceController extends Glad.Controller {
     }).exec()
   }
 
+  myHtmlPage () {
+    this.cache({ max: 300, strategy: 'LFU', type: 'html' }, cache => {
+      this.render('my-page', { name : 'Charlie', up_to: 'testing' }, (err, data) => {
+        this.res.send(data);
+        cache(data);
+      });
+    });
+  }
+
   blastChecker () {
     // simulate a long running database lookup.
     setTimeout(() => this.res.json({}), 220);

@@ -1,3 +1,4 @@
+const path = require('path');
 let ControllerCache = require('./controller-cache');
 let { chalk: {info}} = require('../namespace/console');
 let object = require('../namespace/object');
@@ -25,14 +26,14 @@ let types = require('../namespace/type');
 class Controller {
 
   constructor (req, res, redisClient) {
-    let { params, body, __rootViewPath } = req;
+    let { params, body } = req;
     this.req = req;
     this.res = res;
     this.params = params;
     this.body = body;
     this.redisClient = redisClient;
     this.cacheStore = {};
-    this.__rootViewPath = __rootViewPath;
+    this.viewPath = req.controller.replace('Controller', '').toLowerCase();
   }
 
   /**
@@ -287,11 +288,10 @@ class Controller {
    * this.res.render('path/to/view', data);
    * ```
    */
-  render (...args) {
-    let path = this.viewPath;
-    args.unshift(path);
-    this.res.render(args);
-  }
+   render (...args) {
+     args[0] = path.join(this.viewPath, args[0]);
+     this.res.render.apply(this.res, args);
+   }
 
 }
 

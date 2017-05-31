@@ -15,6 +15,9 @@ module.exports = {
     policy : 'goodToGo'
   },
   {
+    path : '/resources/my-page',
+    action : 'myHtmlPage'
+  },{
     path : '/resources/:id',
     action : 'FindOne'
   }],

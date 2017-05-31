@@ -36,6 +36,7 @@ module.exports = class Boot {
       this.connectToMongo,
       this.id,
       this.disablePoweredBy,
+      this.setViewEngine,
       this.getMiddleware,
       this.getHooks,
       this.after,
@@ -262,6 +263,12 @@ module.exports = class Boot {
       }
       resolve();
     });
+  }
+
+  setViewEngine () {
+    let { config } = this.project;
+    this.server.app.set('view engine', config.defaultViewEngine || 'pug');
+    return Promise.resolve();
   }
 
 }

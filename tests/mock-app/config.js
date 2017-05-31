@@ -25,5 +25,6 @@ module.exports = {
     "port": 27017,
     "database": "testdb123456789"
   },
+  "defaultViewEngine" : "pug",
   "orm": "mongoose"
 }
