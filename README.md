@@ -1,4 +1,4 @@
-<img src=".assets/glad-banner.png">
+<img src=".assets/glad-banner.png" height="160px" width="712px" align="center">
 
 [![Code Climate](https://codeclimate.com/github/gladjs/glad/badges/gpa.svg)](https://codeclimate.com/github/gladjs/glad)
 [![Build Status](https://travis-ci.org/gladjs/glad.svg?branch=master)](https://travis-ci.org/gladjs/glad)
@@ -68,12 +68,12 @@ The recommended way to install Glad is using Glad CLI. However, it is not necess
 
 Glad CLI has many options for initializing a project. The CLI supports several different databases including MongoDB, Postgresql, MySQL. In addition, Glad CLI supports either Mongoose, Waterline, or usage without an ORM/ODM. You can read the documentation for Glad-CLI [here.](https://github.com/gladjs/glad-cli/blob/master/README.md)
 
-** Example using MongoDB & Mongoose **
+**Example using MongoDB & Mongoose**
 - Create a new folder for your project
 - `cd /path/to/new-folder`
 - `glad init --odm=mongoose`
 
-** Example using Postgresql & Waterline **
+**Example using Postgresql & Waterline**
 - Create a new folder for your project
 - `cd /path/to/new-folder`
 - `glad init --odm=waterline --adapter=sails-postgresql`
