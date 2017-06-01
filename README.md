@@ -1,19 +1,11 @@
-<div style='background-image:url(.assets/glad_small.jpg);padding:20px;background-position:right;background-repeat:no-repeat;background-color:#f5bd0e;background-size:contain;margin-bottom:15px;'>
+<img src=".assets/glad-banner.png">
 
-  <h1 style='color:white;font-weight:100;margin:0;font-size:35px'>Glad.JS</h1>
-  <div style="margin-top:-5px;font-weight:600;font-size:12px;">Kick start your next Node project in superhero fashion!</div>
-</div>
-
-<div style='float:left;width:50%;'>
-  [![NPM](https://nodei.co/npm/glad.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/glad/)
-</div>
-
-<div style='float:right;width:50%;text-align:right;margin-bottom:15px;'>
 [![Code Climate](https://codeclimate.com/github/gladjs/glad/badges/gpa.svg)](https://codeclimate.com/github/gladjs/glad)
 [![Build Status](https://travis-ci.org/gladjs/glad.svg?branch=master)](https://travis-ci.org/gladjs/glad)
-<br/>
 [![Coverage Status](https://coveralls.io/repos/github/gladjs/glad/badge.svg?branch=master)](https://coveralls.io/github/gladjs/glad?branch=master)
-</div>
+
+[![NPM](https://nodei.co/npm/glad.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/glad/)
+
 
 <div style="clear:both;"></div>
 
