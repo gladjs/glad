@@ -1,4 +1,4 @@
-<img src=".assets/glad-banner.png" height="160px" width="712px" align="center">
+<img src="https://raw.githubusercontent.com/gladjs/glad/master/.assets/glad-banner.png" height="160px" width="712px" align="center">
 
 [![Code Climate](https://codeclimate.com/github/gladjs/glad/badges/gpa.svg)](https://codeclimate.com/github/gladjs/glad)
 [![Build Status](https://travis-ci.org/gladjs/glad.svg?branch=master)](https://travis-ci.org/gladjs/glad)
