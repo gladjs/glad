@@ -93,7 +93,9 @@ Let us begin with a brief overview of how Glad.JS works by taking a high level l
 - A request comes in to `/foo`
 - The router locates the `/foo` route.
 - The router checks the route entry to see if there is a specific body parser it should use for this request. If not, it uses the default body parser defined in your `config.js` file. Either way, the body gets parsed.
-- The router then checks to see if there is a policy specified on the route entry. If there is, it routes the request to the policy and if it is accepted, the policy hands the request off to the correct controller/action combo, if not it routes the request to the correct controller/action combo.
+- The router then checks to see if there is a policy specified on the route entry.
+- If there is a policy, it routes the request to the policy and if it is accepted, the policy hands the request off to the correct controller/action combo.
+- If there is no policy, The router routes the request off to the correct controller/action combo.
 
 There's quite a lot happening behind the scenes to facilitate this flow, but that's basically the gist of it. You have routes, models, controllers, and (if you'd like) views. Routes point to controllers, controllers pull in models and complete the request with various types of data/views.
 
@@ -134,7 +136,7 @@ Now lets take a look at getting set up. After installation, it's a good idea to 
 
   defaultViewEngine : 'pug', // <-- The default view engine to use
 
-  orm: "mongoose" // <-- This tells Glad CLI to use mongoose when generating APIs
+  orm: "mongoose" // <-- This tells Glad CLI to use the mongoose blueprint when generating APIs
 
 }
 ```
@@ -234,7 +236,7 @@ module.exports = {
 
 <br>
 
-Moving right along to routing. A route file is an object whose keys consist of HTTP verbs. Each verb is an array route entries. This is how the router knows what controller action to route the request to, what policy to check, and if there is a specific body parser to use or the default. Each controller in your app will have it's own route file. You can think of it as resource based routing. Given a resource called `user` you should have the following files.
+Moving right along to routing. A route file is an object and the keys consist of HTTP verbs. (Any valid HTTP verb can be used) Each verb is an array route entries. This is how the router knows what controller action to route the request to, what policy to check, and if there is a specific body parser to use or the default. Each controller in your app will have it's own route file. You can think of it as resource based routing. Given a resource called `user` you should have the following files.
 
 - controllers/user.js
 - models/user.js
@@ -263,7 +265,7 @@ In the routes folder file you will find your routes. The routes object is organi
   module.exports = {
     GET: [{
         path: '/users',         // <--- what url does this entry match?
-        action: 'GET',  // <--- what controller method should handle this request?
+        action: 'GET',          // <--- what controller method should handle this request?
         policy: 'authenticated' // <--- what policy applies to this route?
     },{
         path: '/users/:id',
@@ -402,12 +404,12 @@ API:  All methods return a **Promise**.
 |`get(key)` | resolve to the value stored in the cache for the given key or null if not present. If present, the key will be marked as the most recently accessed one.|
 | `getOrSet(key, fn, maxAge)` | resolve to the value stored in the cache for the given key. If not present, execute fn, save the result in the cache and return it. fn should be a no args function that returns a value or a promise. If maxAge is passed, it will be used only if the key is not already in the cache.|
 | `peek(key)` | resolve to the value stored in the cache for the given key, without changing its last accessed time.|
-| `del(key)` | removes the item from the cache. | 
-| `reset()` | empties the cache. | 
-| `has(key)` | resolves to true if the given key is present in the cache. | 
-| `keys()` | resolves to an array of keys in the cache, sorted from most to least recently accessed. | 
-| `values()` | resolves to an array of values in the cache, sorted from most to least recently accessed. | 
-| `count()` | resolves to the number of items currently in the cache. | 
+| `del(key)` | removes the item from the cache. |
+| `reset()` | empties the cache. |
+| `has(key)` | resolves to true if the given key is present in the cache. |
+| `keys()` | resolves to an array of keys in the cache, sorted from most to least recently accessed. |
+| `values()` | resolves to an array of values in the cache, sorted from most to least recently accessed. |
+| `count()` | resolves to the number of items currently in the cache. |
 
 
 ### req / res / params / query / body
@@ -446,7 +448,7 @@ this.permit('user.name', 'user.email', 'user.phone');
 ```
 
 - You must be specific when the key contains an object.
-- You cannot permit the whole user object at once. In order to permit "sub documents" you need to use the **deepPermit** method instead. This is intentional because it can defeat the purpose of **permit** when you permit a subdocument that could potentially contain things that shouldn't be allowed. 
+- You cannot permit the whole user object at once. In order to permit "sub documents" you need to use the **deepPermit** method instead. This is intentional because it can defeat the purpose of **permit** when you permit a subdocument that could potentially contain things that shouldn't be allowed.
 
 After calling permit, `this.permitted` will be true.
 

@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 let importer = require('../namespace/import');
 
 describe("import methods (alias for require)", function () {
