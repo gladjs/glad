@@ -1,9 +1,8 @@
 let { log, chalk } = require('../namespace/console');
-let { error }      = chalk;
+let { error,warn } = chalk;
 let Server         = require('../classes/server');
 let Router         = require('../classes/router');
 let Initializer    = require('./initialize');
-let RequestIdentifier = require('./request-identifier');
 let redis          = require("redis");
 let session        = require('express-session');
 let sessionStore   = require('express-sessions');
@@ -12,6 +11,8 @@ let Project        = require('../classes/project');
 let { join }       = require('path');
 let RequestEnd     = require('./after-request');
 let Cache          = require('../namespace/cache');
+let exposeModelsGlobally  = require('./expose-models-globally');
+let RequestIdentifier     = require('./request-identifier');
 
 Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
@@ -43,7 +44,8 @@ module.exports = class Boot {
       this.middleware,
       this.initializeWaterline,
       this.drawSocketIo,
-      this.draw
+      this.draw,
+      this.exposeModels
     ], exec => exec.call(this))
       .then(() => this.server.listen())
       .catch(err => log(err));
@@ -128,18 +130,23 @@ module.exports = class Boot {
     return new Promise( resolve => {
       let { config } = this.project;
       if (config.session) {
+
         let options = extend({
           instance: this.server.redis,
           storage: 'redis'
         }, config.session);
+
         this._sessions = session({
           secret: config.cookie.secret,
-          resave: false,
+          resave: config.cookie.resave || false,
           store: new sessionStore(options),
           saveUninitialized: true,
-          cookie: { maxAge : config.cookie.maxAge }
+          cookie : config.cookie,
+          name : config.cookie.name
         });
+
         this.server.app.use(this._sessions);
+
       }
       resolve();
     });
@@ -179,13 +186,18 @@ module.exports = class Boot {
     });
   }
 
-  // Coming Soon...
-  // exposeModels () {
-  //   return new Promise( (resolve, reject) => {
-  //     let method = require('./../boot/expose-models-globally');
-  //     method(this.router).then(resolve).catch(reject);
-  //   });
-  // }
+  exposeModels () {
+    let { config } = this.project;
+    return new Promise( (resolve, reject) => {
+      if (config.exposeModelsGlobally && config.orm === 'mongoose') {
+        exposeModelsGlobally(this.router).then(resolve).catch(reject);
+      } else if (config.exposeModelsGlobally) {
+        warn('You can only automatically expose model globally when specifying mongoose as your ORM');
+        warn('If you are using mongoose, please set `orm : "mongoose"` in your config.js file.');
+        warn('If you are not using mongoose, please set "exposeModelsGlobally : false" in your config.js file to supress this warning');
+      }
+    });
+  }
 
   middleware () {
     return new Promise( (resolve, reject) => {
