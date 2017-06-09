@@ -25,6 +25,13 @@ exports.chalk = {
     }).join('\n'), 'green'));
   },
 
+  warn (...args) {
+    if (NODE_ENV === 'test') return;
+    log(color(args.map(a => {
+      return (typeof a === typeof {}) ? JSON.stringify(a, null, 2) : a;
+    }).join('\n'), 'yellow'));
+  },
+
   error (...args) {
     if (NODE_ENV === 'test') return;
     error(color(args.map(a => {
