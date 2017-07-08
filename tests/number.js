@@ -126,4 +126,9 @@ describe("Number tests", function () {
    assert.equal(number.toPhone(9255551212, true, 4528), "(925) 555-1212 x4528");
  });
 
+ it("NumberFormatter:: should create new formatters with default parameters", function () {
+   let toGBP = new number.NumberFormatter("£", false, 2, ',', '.');
+    assert.equal(toGBP(1234567.89), '£1.234.567,89');
+ });
+
 });

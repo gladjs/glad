@@ -5,8 +5,8 @@ const DAY     = 24 * HOUR;
 const lodash  = require('lodash');
 
 // Tested up to 99e19
-function NumberFormatter (unit, rear=false) {
-  return function (number, precision, decimal, comma) {
+function NumberFormatter (unit, rear=false, defaultPrecision, defaultDecimal, defaultComma) {
+  return function (number, precision = defaultPrecision, decimal = defaultDecimal, comma = defaultComma) {
     precision = isNaN(precision = Math.abs(precision)) ? 2 : precision;
     decimal = decimal === undefined ? '.' : decimal;
     comma = comma === undefined ? ',' : comma;
@@ -125,5 +125,5 @@ module.exports = {
     }
   }
 
-  
+
 };
