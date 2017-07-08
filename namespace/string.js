@@ -1,3 +1,8 @@
+/*
+  Attributions:
+  Portions of this are from Ember.JS. License MIT.
+*/
+
 const chalk = require('chalk');
 const CAPITALIZE = (/(^|\/)([a-z])/g);
 const CAMELIZE_REGEXP_1 = (/(\-|\_|\.|\s)+(.)?/g);
@@ -166,6 +171,29 @@ module.exports = class GladString {
 
   words (...args) {
     return lodash.words.apply(lodash, args);
+  }
+
+  sentenceCase (string) {
+    var sentences = string.split("."),
+        out = "",
+        i = 0,
+        j;
+
+    for(i; i < sentences.length; i+= 1) {
+        var spaceput = "",
+            spaceCount=sentences[i].replace(/^(\s*).*$/,"$1").length;
+
+        sentences[i]=sentences[i].replace(/^\s+/,"");
+        var newstring=sentences[i].charAt(sentences[i]).toUpperCase() + sentences[i].slice(1);
+
+        for(j=0; j < spaceCount; j+= 1) {
+            spaceput = spaceput + " ";
+        }
+
+        out += spaceput + newstring + ".";
+     }
+
+     return out.substring(0, out.length - 1);
   }
 
 }

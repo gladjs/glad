@@ -168,7 +168,7 @@ describe("String Tests", function () {
     );
   });
 
-  it("uescape:: should unescape a string", function () {
+  it("unescape:: should unescape a string", function () {
     assert.equal(
       string.unescape("fred, barney, &amp; pebbles"),
       "fred, barney, & pebbles"
@@ -221,6 +221,13 @@ describe("String Tests", function () {
     assert.deepEqual(
       string.words('fred, barney, & pebbles', /[^, ]+/g),
       ['fred', 'barney', '&', 'pebbles']
+    );
+  });
+
+  it ("sentenceCase:: should capitalize Beginnings of sentences", function () {
+    assert.equal(
+      string.sentenceCase("the quick. brown fox. jumped over stuff."),
+      "The quick. Brown fox. Jumped over stuff."
     );
   });
 
