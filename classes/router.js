@@ -3,19 +3,21 @@ const path    = require('path');
 const { chalk } = require('./../namespace/console');
 const policy  = require('./policy');
 const bodyParser = require('body-parser');
+const args    = require('optimist').argv;
+const lodash  = require('lodash');
 
 module.exports = class Router {
 
   constructor (project, server) {
     this.project  = project;
     this.server   = server;
-    this.routes = {};
+    this.routes   = {};
     this.controllers = {};
-    this.models = {};
-    this.errors = [];
-    this.config = require(this.project.configPath);
+    this.models   = {};
+    this.errors   = [];
+    this.config   = require(this.project.configPath);
     this.policies = require(path.join(project.projectPath, "policies.js"));
-    this.logging = require(project.configPath).logHTTP;
+    this.logging  = require(project.configPath).logHTTP;
   }
 
   /**
@@ -59,7 +61,18 @@ module.exports = class Router {
    * Gets the file paths for all of the .js files in a directory [path]
    */
   getFilesForPath (path) {
-    return fs.readdirSync(path).filter(file => /(\.js)$/.test(file));
+    let paths = fs.readdirSync(path).filter(file => /(\.js)$/.test(file));
+    let only = args.only && args.only.split(',').map(x => `${x}.js`); 
+    /**
+    * Implement the --only flag. 
+    * This allows you to have the server only handle routes for a specific controller.
+    * This use case is primarily for occasions such as booting up a server to warm caches for 
+    * a specific controller, or for adding additional servers to handle an impacted resource.
+    **/
+    if (only && only.length) {
+      paths = paths.filter( p => lodash.includes(only, p));
+    }
+    return paths;
   }
 
   /**
@@ -70,8 +83,7 @@ module.exports = class Router {
    * error   The humanized name of the segment that is being created
    */
   setObjectsForSegment (fpath, segment, error) {
-    var files = this.getFilesForPath(fpath);
-    files.forEach(file => {
+    this.getFilesForPath(fpath).forEach(file => {
       let ref = path.join (fpath, file);
       try {
         this[segment][file.replace('.js', '')] = require(ref);

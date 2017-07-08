@@ -1,4 +1,5 @@
 let { chalk: { ok } } = require('../namespace/console');
+const args = require('optimist').argv;
 
 module.exports = class Server {
 
@@ -11,7 +12,13 @@ module.exports = class Server {
   }
 
   listen () {
+    
     let { port, host, sock, backlog } = this.project.config;
+
+    if (args.port)    port    = Number(args.port);
+    if (args.host)    host    = args.host;
+    if (args.sock)    sock    = args.sock;
+    if (args.backlog) backlog = Number(args.backlog);
 
     if (process.env['CONSOLE_MODE']) {
       ok('Running in Console Mode');

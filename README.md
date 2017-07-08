@@ -541,6 +541,11 @@ module.exports = {
  The convention is such that you provide the lowercase filename of your controller(s) that should be enabled.
  If you are not using Glad CLI, this will still work. `node index.js --only=posts`
 
+#### Server Flags
+
+`--port` | `--host` | `--sock` |  `--backlog`
+Using the server flags you can over ride the values in your config.js file.  
+
 
 ## Classes / Helpers / Tools
 
@@ -566,48 +571,48 @@ Assume `string === Glad.string` for the examples below.
     `string.deburr('released w/ stuff') === 'released with stuff'`
 
     `string.deburr('live && loud') === live and loud'`
-    
+
     `string.deburr(':) || sad') === 'smile or sad'`
 
   - converts Latin characters
-  
+
     `string.deburr('À') === 'A'` <i>See fig s1 at the bottom of the page for a list of all supported characters</i>
-    
+
   - converts Greek characters
-  
+
     `string.deburr('α') === 'a'` <i>See fig s2 at the bottom of the page for a list of all supported characters</i>
-    
+
   - converts Turkish characters
-  
+
     `string.deburr('ş') === 's'` <i>See fig s3 at the bottom of the page for a list of all supported characters</i>
-  
+
   - converts Russian characters
-  
+
     `string.deburr('ф') === 'f'` <i>See fig s4 at the bottom of the page for a list of all supported characters</i>  
 
 - slugify
-	
+
   Creates a normalized slug from a string
- 
+
   `string.slugify('San Francisco, CA') === 'san-francisco-ca'`
-  
+
   `string.slugify('The brown fox w/ βeta') === 'the-brown-fox-with-beta'`
 
 	`string.slugify('good news so you can :)') === 'good-news-so-you-can-smile'`
 
 - camelize
-	
+
   `string.camelize("fooze-barz") === 'foozeBarz'`
-  
+
 
 - titleize
 
 	`string.titelize("fooze barz") === 'Fooze Barz'`
-	
-- slasherize 
-	
+
+- slasherize
+
   `string.slasherize("fooze barz") === "fooze/barz"`
-  
+
 - reverseSlasherize
 
 	`string.reverseSlasherize("fooze barz") === "barz/fooze"`
@@ -624,7 +629,7 @@ Assume `string === Glad.string` for the examples below.
 - endsWith
 
 	`string.endsWith("fooze  barz fooze", "fooze") === true`
-	
+
   `string.endsWith("fooze  barz", "fooze") === false`
 
 
@@ -638,9 +643,9 @@ Assume `string === Glad.string` for the examples below.
 	`string.unescape("fred, barney, &amp; pebbles") === "fred, barney, & pebbles"`
 
 - escapeRegExp
-	
+
   escapes a string for use in regexp
-  
+
   `string.escapeRegExp('[lodash](https://lodash.com/)') === "\\[lodash\\]\\(https://lodash\\.com/\\)"`
 
 
@@ -652,18 +657,18 @@ Assume `string === Glad.string` for the examples below.
 - startsWith
 
 	`string.startsWith("fooze  barz", "fooze") === true`
-  
+
   `string.startsWith("x fooze  barz", "fooze") === false`
 
 
 - words
 
 	split a string based on words
-  
+
   `string.words('fred, barney, & pebbles') === ['fred', 'barney', 'pebbles']`
-	
+
   split a string based on words and keep elements by regexp
-  
+
   `string.words('fred, barney, & pebbles', /[^, ]+/g) === ['fred', 'barney', '&', 'pebbles']`
 
 - sentenceCase
@@ -675,7 +680,7 @@ Assume `string === Glad.string` for the examples below.
 Assume object refences Glad.object
 
 - get
-	
+
   Pick a value from an object
   ```
     let o = {foo: {bar : 'foobar' }};
@@ -683,9 +688,9 @@ Assume object refences Glad.object
   ```
 
 - extend
-	
+
   Extend `object at argument 1` with `object at argument 2,3,4,n`. The order of extension is from left to right. Duplicate values will be taken from the right-most arguments.
-  
+
   ```
     let src = {one: 1};
     let ext = {two: 2};
@@ -715,9 +720,9 @@ Assume object refences Glad.object
   ```
 
 - hasPath
-	
+
   return a boolean value if an object contains a path
-  
+
   ```
     let src = {one: 1};
     assert.equal(object.hasPath(src, 'one'), true);
@@ -725,16 +730,16 @@ Assume object refences Glad.object
   ```
 
 - clone
-	
+
   return a new object
-  
+
   ```
     let src = {one: 1, two: {a: 1}};
     assert.deepEqual(object.clone(src), {one: 1, two: {a: 1}});
   ```
 
   new object should not be passed by reference
-  
+
   ```
     let src = {one: 1, two: {a: 1} };
     let src2 = object.clone(src);
@@ -744,9 +749,9 @@ Assume object refences Glad.object
   ```
 
 - set
-	
+
   set a value at the given path (null/undefined safe)
-  
+
   ```
     let src = {};
     object.set(src, 'foo', 1);
@@ -759,10 +764,10 @@ Assume object refences Glad.object
     assert.equal(src.foo.bar.baz.x, 1);
   ```
 
-- arrayToObject 
+- arrayToObject
 
 	convert an array of arrays to an object
-  
+
   ```
     let arr  = [['a', 1], ['b', 2]];
     let o = object.arrayToObject(arr);
@@ -770,10 +775,10 @@ Assume object refences Glad.object
     assert.equal(o.b, 2);
   ```
 
-- invert 
+- invert
 
 	invert an object    
-  
+
   ```
     let o = {a: 'A', b: 'B'};
     object.invert(o);
@@ -781,10 +786,10 @@ Assume object refences Glad.object
     assert.equal(o.a, undefined);
   ```
 
-- select 
+- select
 
 	select keys from an object (creates a new object)
-  
+
   ```
     let o = {name: 'fred', email: 'me@mail.com', password: 'secretSquirrel'};
     let fields = object.select(o, 'name', 'email');
@@ -792,7 +797,7 @@ Assume object refences Glad.object
   ```
 
   select keys from an object via Array
-  
+
   ```
     let o = {name: 'fred', email: 'me@mail.com', password: 'secretSquirrel'};
     let fields = object.select(o, ['name', 'email']);
@@ -802,7 +807,7 @@ Assume object refences Glad.object
 - drop  
 
 	drop keys from an object
-    
+
   ```  
     let o = { name: 'fred', email: 'me@mail.com', password: 'secretSquirrel' };
     object.drop(o, 'password');
@@ -810,7 +815,7 @@ Assume object refences Glad.object
   ```
 
   drop keys from an object via Array
-  
+
   ```
     let o = { name: 'fred', email: 'me@mail.com', password: 'secretSquirrel'  
     object.drop(o, ['password']);
@@ -818,15 +823,15 @@ Assume object refences Glad.object
   });
   ```
 
-- selectCombination 
- 
+- selectCombination
+
  	select values from multiple objects and create a new one
-    
+
 	```
-    let a = { 
-      name: 'fred', 
-      email: 'me@mail.com', 
-      password: 'secretSquirrel' 
+    let a = {
+      name: 'fred',
+      email: 'me@mail.com',
+      password: 'secretSquirrel'
     };
     let b = { sid: '8372487234', last_visit: new Date()};
     let c = { likes : 'stuff', knows: 'things'};
@@ -834,69 +839,69 @@ Assume object refences Glad.object
     assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', last_visit: b.last_visit, likes : 'stuff', knows: 'things'});
   });
 	```
-  
+
 - format
 
 	Create a new object from an existing one, but reformat the keys.
-  Individual arguments such as 'email' or 'name' copy the value for the respective key to the new object maintaining the same key name. In order to map a value from the existing array to a new key on the new object, you use an array. [`destination path`, `source path`]. 
-  
+  Individual arguments such as 'email' or 'name' copy the value for the respective key to the new object maintaining the same key name. In order to map a value from the existing array to a new key on the new object, you use an array. [`destination path`, `source path`].
+
   ```
-    let a = { 
-      name: 'fred', 
-      email: 'me@mail.com', 
-      data: { 
-        stuff: { a: 'a', b: 'b'}, 
-        more : { c: 'value'} 
+    let a = {
+      name: 'fred',
+      email: 'me@mail.com',
+      data: {
+        stuff: { a: 'a', b: 'b'},
+        more : { c: 'value'}
       }
     };
-    
+
     let o = object.format(a, 'name', 'email', ['stuff', 'data.stuff.a' ], ['value', 'data.more.c']);
-    
-    assert.deepEqual(o, { 
-      name: 'fred', 
-      email: 'me@mail.com', 
-      stuff: 'a', 
+
+    assert.deepEqual(o, {
+      name: 'fred',
+      email: 'me@mail.com',
+      stuff: 'a',
       value : 'value'
     });
-    
+
   });
   ```
-  
+
   Format the keys using an array
-  
+
   ```
-    let a = { 
-      name: 'fred', 
-      email: 'me@mail.com', 
-      data: { 
-        stuff: { a: 'a', b: 'b'}, 
-        more : { c: 'value'} 
-      } 
+    let a = {
+      name: 'fred',
+      email: 'me@mail.com',
+      data: {
+        stuff: { a: 'a', b: 'b'},
+        more : { c: 'value'}
+      }
     };
-    
+
     let o = object.format(a, [
-      'name', 
-      'email', 
-      ['stuff', 'data.stuff.a' ], 
+      'name',
+      'email',
+      ['stuff', 'data.stuff.a' ],
       ['value', 'data.more.c']
     ]);
-    
-    assert.deepEqual(o, { 
-      name: 'fred', 
-      email: 'me@mail.com', 
-      stuff: 'a', 
+
+    assert.deepEqual(o, {
+      name: 'fred',
+      email: 'me@mail.com',
+      stuff: 'a',
       value : 'value'
     });
-    
+
   });
   ```
-  
+
 - explode
- 
+
  	Explode an object
 
   ```
-  
+
     let row = {
       'id': 2,
       'contact.name.first': 'John',
@@ -958,14 +963,14 @@ Assume number is Glad.number
 	```
 
 - parse
-	
+
   Strip off weird stuff
-  
+
   ```
     assert.equal(number.parse("$34.72"), 34.72);
     assert.equal(number.parse("65.323%"), 65.323);
     assert.equal(number.parse("65%"), 65);
-    
+
     // RESPECTS NEGATIVE NUMBERS
     assert.equal(number.parse("-65%"), -65);
     assert.equal(number.parse("-$65.34"), -65.34);
@@ -974,9 +979,9 @@ Assume number is Glad.number
 
 
 - random
-	
+
   generate a random number between x,y
-  	
+
     ```
     let rand = number.random(5,10);
     assert.equal(rand <= 10, true);
@@ -986,7 +991,7 @@ Assume number is Glad.number
 - withDelimiter
 
 	Simply format a number with commas and decimals
-  
+
   ```
    assert.equal(number.withDelimiter(4), '4.00');
    assert.equal(number.withDelimiter(45), '45.00');
@@ -1006,10 +1011,10 @@ Assume number is Glad.number
    assert.equal(number.withDelimiter(99e19),            '990,000,000,000,000,000,000.00');
 	```
 
-- toAbbr 
+- toAbbr
 
 	Abbreviate a number
-  
+
   ```
    assert.equal(number.toAbbr(45000), '45k');
    assert.equal(number.toAbbr(450000), '450k');
@@ -1024,9 +1029,9 @@ Assume number is Glad.number
 	```
 
 - `toData(bytes)`
- 
+
  	format a number in data units
-  
+
   ```
    assert.equal(number.toData(126.02 * 1000), '126.0 kB');
    assert.equal(number.toData(126.32 * 1000), '126.3 kB');
@@ -1042,11 +1047,11 @@ Assume number is Glad.number
 - `toTime(seconds, returnArray = false)`
 
 	format a number in time
-  
+
   ```
    const HOUR = 60 * 60;
    const DAY = 24 * HOUR;
-   
+
    assert.equal(number.toTime(50), '50 sec');
    assert.equal(number.toTime(60), '1 min');
    assert.equal(number.toTime(HOUR), '1 hr');
@@ -1057,7 +1062,7 @@ Assume number is Glad.number
   ```
 
   format a number in time and return an array
-  
+
   ```
    assert.deepEqual(number.toTime(50, true), [0, 0, 0, 50]);
    assert.deepEqual(number.toTime(60, true), [0, 0, 1, 0]);
@@ -1071,23 +1076,23 @@ Assume number is Glad.number
 - `toCurrency(number, precision, decimal, comma)`
 
 	format a number in USD currency (convienience method)
-  
+
   ```
   assert.equal(number.toCurrency(240.658), '$240.66');
   assert.equal(number.toCurrency(-376240.658), '$-376,240.66');
   ```
-	
-  If you need to format a number in other currencies, use the NumberFormatter Class. 
-  
+
+  If you need to format a number in other currencies, use the NumberFormatter Class.
+
   ```
   let toGBP = new Glad.number.NumberFormatter("£", false, 2, ',', '.');
   assert.equal(toGBP(1234567.89), '£1.234.567,89');
   ```
-  
+
 - `toPercent(number, comma = ",", decimal = ".")`
 
 	format a number as a percentage
-  
+
   ```
    assert.equal(number.toPercent(43.47576353), '43.48%');
    assert.equal(number.toPercent(43.47576353, 4), '43.4758%');
@@ -1106,7 +1111,7 @@ Assume number is Glad.number
    assert.equal(number.toPhone(9255551212, true), "(925) 555-1212");
    assert.equal(number.toPhone(9255551212, true, 4528), "(925) 555-1212 x4528");
   ```
- 
+
 ### imports
 Imports is a require alias with some nifty features specifically for Glad. When using the imports method, paths are imported relative to your working directory.
 
@@ -1177,7 +1182,7 @@ Also assume that the current Date is January 1st 1970 12:00am
   utcDate.minutesFromNow(1) => 1970-01-01T00:01:00.000Z
   utcDate.minutesFromNow(14) => 1970-01-01T00:14:00.000Z
   ```
-  
+
 - secondsFromNow
 
 	```
@@ -1187,9 +1192,9 @@ Also assume that the current Date is January 1st 1970 12:00am
   ```
 
 - startOfSecond
-	
+
   Supply a Date Object and this will return a new date object with milliseconds zeroed out.
-  
+
 
 - startOfMinute
 
@@ -1198,7 +1203,7 @@ Also assume that the current Date is January 1st 1970 12:00am
 - startOfHour
 
 	Supply a Date Object and this will return a new date object with milliseconds, seconds and minutes zeroed out.
-  
+
 - startOfDay
 
 	Supply a Date Object and this will return a new date object with milliseconds, seconds, minutes, and hours zeroed out.
@@ -1206,7 +1211,7 @@ Also assume that the current Date is January 1st 1970 12:00am
 
 
 - startOfWeek
-	
+
   Supply a Date Object and this will return a new date object set to the beginning of the week that the supplied date landed in.
 	```
     let testDate = utcDate.daysFromNow(22);
@@ -1215,7 +1220,7 @@ Also assume that the current Date is January 1st 1970 12:00am
   ```
 
 - startOfMonth
-	
+
   Supply a Date Object and this will return a new date object set to the beginning of the month that the supplied date landed in.
 	```
     let testDate = utcDate.daysFromNow(22);
@@ -1223,9 +1228,9 @@ Also assume that the current Date is January 1st 1970 12:00am
   ```
 
 - startOfQuarter
-	
+
   Supply a Date Object and this will return a new date object set to the beginning of the quarter that the supplied date landed in.
-  
+
 	```
     let testDate = utcDate.daysFromNow(2);
     utcDate.startOfQuarter(testDate) => 1970-01-01T00:00:00.000Z
@@ -1247,9 +1252,9 @@ Also assume that the current Date is January 1st 1970 12:00am
   ```
 
 - startOfYear
-	
+
   Supply a Date Object and this will return a new date object set to the beginning of the year that the supplied date landed in.
-  
+
 	```
     let testDate = utcDate.daysFromNow(300);
     utcDate.startOfYear(testDate) => 1970-01-01T00:00:00.000Z
@@ -1290,21 +1295,21 @@ You can use your own radix or view the ones available under `Glad.token.radixes`
 `generate(12);`
 
 
-** create a new tokenizer from a provided radix ** 
+** create a new tokenizer from a provided radix **
 
 ```
 let myTokenizer = create('0123456789');
 myTokenizer.generate(6) => 6 characters, only digits
 ```
 
-** create a TimeEncoded Token ** 
+** create a TimeEncoded Token **
 
 	`let timeToken = timeCoded()`
-    
-** decode a TimeEncoded Token ** 
-	
+
+** decode a TimeEncoded Token **
+
 	`let tokenCreatedAt = timeDecoded(timeToken)`
-  
+
 
 
 ---
