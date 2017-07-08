@@ -1,6 +1,8 @@
 global._Promise = Promise;
 global.Promise  = require('bluebird').Promise;
 
+const sanitizer = require('sanitizer');
+const sanitize  = require('./namespace/sanitize');
 let Controller  = require('./classes/controller');
 let string      = new (require('./namespace/string'))();
 let cache       = require('./namespace/cache');
@@ -19,6 +21,8 @@ module.exports = global.Glad = {
   token,
   number,
   object,
+  sanitizer,
+  sanitize,
   log,
   cache,
   Controller,
