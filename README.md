@@ -460,6 +460,11 @@ The render method is an enhanced version of Express' **res.render**. Calling `th
 
 <br><br>
 
+## Models
+
+
+<br><br>
+
 ## Web Sockets / Real Time API
 <img src="https://socket.io/assets/img/logo.svg" height="35px">
 
@@ -522,4 +527,1006 @@ module.exports = {
     }
   }
 };
+```
+
+
+## Flags
+
+#### Only
+
+ `--only=[controller|controllers,controllers]`
+ Using the only flag, you can spin up a server that only binds routes for a specific controller or a group of controllers.
+ As an example, `glad s --only=posts` would launch your app and allow traffic to routes handled by the posts controller.
+ If you would like to launch a group of controllers, you would simply comma separate the controllers such as `glad s --only=posts,users`.
+ The convention is such that you provide the lowercase filename of your controller(s) that should be enabled.
+ If you are not using Glad CLI, this will still work. `node index.js --only=posts`
+
+
+## Classes / Helpers / Tools
+
+Glad comes with lots of helpful utilities.
+
+### String
+
+Assume `string === Glad.string` for the examples below.
+
+- color
+  - Produces a colorized string for stdout. `string.color('Oh No', 'red')`
+  - Can be any color name supported by chalk.js
+
+- deburr
+	- converts unicode
+
+    `string.deburr('♥') === 'love'`
+
+  - converts short symbols
+
+    `string.deburr('<3') === 'love'`
+
+    `string.deburr('released w/ stuff') === 'released with stuff'`
+
+    `string.deburr('live && loud') === live and loud'`
+    
+    `string.deburr(':) || sad') === 'smile or sad'`
+
+  - converts Latin characters
+  
+    `string.deburr('À') === 'A'` <i>See fig s1 at the bottom of the page for a list of all supported characters</i>
+    
+  - converts Greek characters
+  
+    `string.deburr('α') === 'a'` <i>See fig s2 at the bottom of the page for a list of all supported characters</i>
+    
+  - converts Turkish characters
+  
+    `string.deburr('ş') === 's'` <i>See fig s3 at the bottom of the page for a list of all supported characters</i>
+  
+  - converts Russian characters
+  
+    `string.deburr('ф') === 'f'` <i>See fig s4 at the bottom of the page for a list of all supported characters</i>  
+
+- slugify
+	
+  Creates a normalized slug from a string
+ 
+  `string.slugify('San Francisco, CA') === 'san-francisco-ca'`
+  
+  `string.slugify('The brown fox w/ βeta') === 'the-brown-fox-with-beta'`
+
+	`string.slugify('good news so you can :)') === 'good-news-so-you-can-smile'`
+
+- camelize
+	
+  `string.camelize("fooze-barz") === 'foozeBarz'`
+  
+
+- titleize
+
+	`string.titelize("fooze barz") === 'Fooze Barz'`
+	
+- slasherize 
+	
+  `string.slasherize("fooze barz") === "fooze/barz"`
+  
+- reverseSlasherize
+
+	`string.reverseSlasherize("fooze barz") === "barz/fooze"`
+
+- underscore
+
+	`string.underscore("fooze barz") === "fooze_barz"`
+
+
+- cleanSpaces
+
+	`string.cleanSpaces("fooze  barz") === "fooze barz"
+
+- endsWith
+
+	`string.endsWith("fooze  barz fooze", "fooze") === true`
+	
+  `string.endsWith("fooze  barz", "fooze") === false`
+
+
+- escape
+
+	`string.escape("fred, barney, & pebbles") === "fred, barney, &amp; pebbles"
+
+
+- unescape
+
+	`string.unescape("fred, barney, &amp; pebbles") === "fred, barney, & pebbles"`
+
+- escapeRegExp
+	
+  escapes a string for use in regexp
+  
+  `string.escapeRegExp('[lodash](https://lodash.com/)') === "\\[lodash\\]\\(https://lodash\\.com/\\)"`
+
+
+- repeat
+
+	`string.repeat("glad", 2) === "gladglad"`
+
+
+- startsWith
+
+	`string.startsWith("fooze  barz", "fooze") === true`
+  
+  `string.startsWith("x fooze  barz", "fooze") === false`
+
+
+- words
+
+	split a string based on words
+  
+  `string.words('fred, barney, & pebbles') === ['fred', 'barney', 'pebbles']`
+	
+  split a string based on words and keep elements by regexp
+  
+  `string.words('fred, barney, & pebbles', /[^, ]+/g) === ['fred', 'barney', '&', 'pebbles']`
+
+- sentenceCase
+
+	Capitalizes letters at the beginning of a string, and after periods.
+
+### Objects
+
+Assume object refences Glad.object
+
+- get
+	
+  Pick a value from an object
+  ```
+    let o = {foo: {bar : 'foobar' }};
+    object.get(o, 'foo.bar') => 'foobar'
+  ```
+
+- extend
+	
+  Extend `object at argument 1` with `object at argument 2,3,4,n`. The order of extension is from left to right. Duplicate values will be taken from the right-most arguments.
+  
+  ```
+    let src = {one: 1};
+    let ext = {two: 2};
+    assert.deepEqual(object.extend(src, ext), {one: 1, two: 2})
+  ```
+
+  ```
+    let src = {one: 1};
+    let ext = {two: 2};
+    let ext2 = {three: 3};
+    assert.deepEqual(object.extend(src, ext, ext2), {one: 1, two: 2, three: 3});
+  ```
+
+  ```
+    let src = {one: 1};
+    let ext = {one: 2};
+    let ext2 = {three: 3};
+    assert.deepEqual(object.extend(src, ext, ext2), {one: 2, three: 3});
+  ```
+
+  ```
+    let src = {one: 1};
+    let ext = {two: 2};
+    let ext2 = {two: 3};
+    let ext3 = {two: 4};
+    assert.deepEqual(object.extend(src, ext, ext2, ext3), {one: 1, two: 4});
+  ```
+
+- hasPath
+	
+  return a boolean value if an object contains a path
+  
+  ```
+    let src = {one: 1};
+    assert.equal(object.hasPath(src, 'one'), true);
+    assert.equal(object.hasPath(src, 'one.value.at.nowhere'), false);
+  ```
+
+- clone
+	
+  return a new object
+  
+  ```
+    let src = {one: 1, two: {a: 1}};
+    assert.deepEqual(object.clone(src), {one: 1, two: {a: 1}});
+  ```
+
+  new object should not be passed by reference
+  
+  ```
+    let src = {one: 1, two: {a: 1} };
+    let src2 = object.clone(src);
+    src2.two.a = 3;
+    assert.equal(src.two.a, 1);
+    assert.equal(src2.two.a, 3);
+  ```
+
+- set
+	
+  set a value at the given path (null/undefined safe)
+  
+  ```
+    let src = {};
+    object.set(src, 'foo', 1);
+    assert.equal(src.foo, 1);
+  ```
+
+  ```
+    let src = {};
+    object.set(src, 'foo.bar.baz.x', 1);
+    assert.equal(src.foo.bar.baz.x, 1);
+  ```
+
+- arrayToObject 
+
+	convert an array of arrays to an object
+  
+  ```
+    let arr  = [['a', 1], ['b', 2]];
+    let o = object.arrayToObject(arr);
+    assert.equal(o.a, 1);
+    assert.equal(o.b, 2);
+  ```
+
+- invert 
+
+	invert an object    
+  
+  ```
+    let o = {a: 'A', b: 'B'};
+    object.invert(o);
+    assert.deepEqual(o, {A: 'a', B: 'b'});
+    assert.equal(o.a, undefined);
+  ```
+
+- select 
+
+	select keys from an object (creates a new object)
+  
+  ```
+    let o = {name: 'fred', email: 'me@mail.com', password: 'secretSquirrel'};
+    let fields = object.select(o, 'name', 'email');
+    assert.deepEqual(fields, {name: 'fred', email: 'me@mail.com'});
+  ```
+
+  select keys from an object via Array
+  
+  ```
+    let o = {name: 'fred', email: 'me@mail.com', password: 'secretSquirrel'};
+    let fields = object.select(o, ['name', 'email']);
+    assert.deepEqual(fields, {name: 'fred', email: 'me@mail.com'});
+  ```
+
+- drop  
+
+	drop keys from an object
+    
+  ```  
+    let o = { name: 'fred', email: 'me@mail.com', password: 'secretSquirrel' };
+    object.drop(o, 'password');
+    assert.deepEqual(o, {name: 'fred', email: 'me@mail.com'});
+  ```
+
+  drop keys from an object via Array
+  
+  ```
+    let o = { name: 'fred', email: 'me@mail.com', password: 'secretSquirrel'  
+    object.drop(o, ['password']);
+    assert.deepEqual(o, {name: 'fred', email: 'me@mail.com'});
+  });
+  ```
+
+- selectCombination 
+ 
+ 	select values from multiple objects and create a new one
+    
+	```
+    let a = { 
+      name: 'fred', 
+      email: 'me@mail.com', 
+      password: 'secretSquirrel' 
+    };
+    let b = { sid: '8372487234', last_visit: new Date()};
+    let c = { likes : 'stuff', knows: 'things'};
+    let o = object.selectCombination([a, b, c], 'name', 'email', 'last_visit', 'likes', 'knows');
+    assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', last_visit: b.last_visit, likes : 'stuff', knows: 'things'});
+  });
+	```
+  
+- format
+
+	Create a new object from an existing one, but reformat the keys.
+  Individual arguments such as 'email' or 'name' copy the value for the respective key to the new object maintaining the same key name. In order to map a value from the existing array to a new key on the new object, you use an array. [`destination path`, `source path`]. 
+  
+  ```
+    let a = { 
+      name: 'fred', 
+      email: 'me@mail.com', 
+      data: { 
+        stuff: { a: 'a', b: 'b'}, 
+        more : { c: 'value'} 
+      }
+    };
+    
+    let o = object.format(a, 'name', 'email', ['stuff', 'data.stuff.a' ], ['value', 'data.more.c']);
+    
+    assert.deepEqual(o, { 
+      name: 'fred', 
+      email: 'me@mail.com', 
+      stuff: 'a', 
+      value : 'value'
+    });
+    
+  });
+  ```
+  
+  Format the keys using an array
+  
+  ```
+    let a = { 
+      name: 'fred', 
+      email: 'me@mail.com', 
+      data: { 
+        stuff: { a: 'a', b: 'b'}, 
+        more : { c: 'value'} 
+      } 
+    };
+    
+    let o = object.format(a, [
+      'name', 
+      'email', 
+      ['stuff', 'data.stuff.a' ], 
+      ['value', 'data.more.c']
+    ]);
+    
+    assert.deepEqual(o, { 
+      name: 'fred', 
+      email: 'me@mail.com', 
+      stuff: 'a', 
+      value : 'value'
+    });
+    
+  });
+  ```
+  
+- explode
+ 
+ 	Explode an object
+
+  ```
+  
+    let row = {
+      'id': 2,
+      'contact.name.first': 'John',
+      'contact.name.last': 'Doe',
+      'contact.email': 'example@gmail.com',
+      'contact.info.about.me': 'classified',
+      'devices.0': 'mobile',
+      'devices.1': 'laptop',
+      'some.other.things.0': 'this',
+      'some.other.things.1': 'that',
+      'some.other.stuff.0.key': 'stuff'
+    };
+
+    object.explode(row);
+
+    assert.deepEqual(row, {
+      "id": 2,
+      "contact": {
+        "name": {
+          "first": "John",
+          "last": "Doe"
+        },
+        "email": "example@gmail.com",
+        "info": {
+          "about": {
+            "me": "classified"
+          }
+        }
+      },
+      "devices": [
+        "mobile",
+        "laptop"
+      ],
+      "some": {
+        "other": {
+          "things": [
+            "this",
+            "that"
+          ],
+          stuff : [{
+            key : "stuff"
+          }]
+        }
+      }
+    });
+  });
+  ```
+
+### Number
+
+Assume number is Glad.number
+
+- Time Constants
+	```
+    assert.equal(number.SECOND, 1000);
+    assert.equal(number.MINUTE, 1000 * 60);
+    assert.equal(number.HOUR, 1000 * 60 * 60);
+    assert.equal(number.DAY, 1000 * 60 * 60 * 24);
+	```
+
+- parse
+	
+  Strip off weird stuff
+  
+  ```
+    assert.equal(number.parse("$34.72"), 34.72);
+    assert.equal(number.parse("65.323%"), 65.323);
+    assert.equal(number.parse("65%"), 65);
+    
+    // RESPECTS NEGATIVE NUMBERS
+    assert.equal(number.parse("-65%"), -65);
+    assert.equal(number.parse("-$65.34"), -65.34);
+    assert.equal(number.parse("-78.32-"), -78.32);
+	```
+
+
+- random
+	
+  generate a random number between x,y
+  	
+    ```
+    let rand = number.random(5,10);
+    assert.equal(rand <= 10, true);
+    assert.equal(rand >= 5, true);
+		```
+
+- withDelimiter
+
+	Simply format a number with commas and decimals
+  
+  ```
+   assert.equal(number.withDelimiter(4), '4.00');
+   assert.equal(number.withDelimiter(45), '45.00');
+   assert.equal(number.withDelimiter(450), '450.00');
+   assert.equal(number.withDelimiter(4500), '4,500.00');
+   assert.equal(number.withDelimiter(45000), '45,000.00');
+   assert.equal(number.withDelimiter(450000), '450,000.00');
+   assert.equal(number.withDelimiter(4500000), '4,500,000.00');
+   assert.equal(number.withDelimiter(45000000), '45,000,000.00');
+   assert.equal(number.withDelimiter(450000000), '450,000,000.00');
+   assert.equal(number.withDelimiter(4500000000), '4,500,000,000.00');
+   assert.equal(number.withDelimiter(45000000000), '45,000,000,000.00');
+   assert.equal(number.withDelimiter(450000000000), '450,000,000,000.00');
+   assert.equal(number.withDelimiter(4500000000000), '4,500,000,000,000.00');
+   assert.equal(number.withDelimiter(45000000000000), '45,000,000,000,000.00');
+   assert.equal(number.withDelimiter(450000000000000), '450,000,000,000,000.00');
+   assert.equal(number.withDelimiter(99e19),            '990,000,000,000,000,000,000.00');
+	```
+
+- toAbbr 
+
+	Abbreviate a number
+  
+  ```
+   assert.equal(number.toAbbr(45000), '45k');
+   assert.equal(number.toAbbr(450000), '450k');
+   assert.equal(number.toAbbr(4500000), '4.5m');
+   assert.equal(number.toAbbr(45000000), '45m');
+   assert.equal(number.toAbbr(450000000), '450m');
+   assert.equal(number.toAbbr(4500000000), '4.5b');
+   assert.equal(number.toAbbr(45000000000), '45b');
+   assert.equal(number.toAbbr(450000000000), '450b');
+   assert.equal(number.toAbbr(450), '450');
+   assert.equal(number.toAbbr(4500), '4.5k');
+	```
+
+- `toData(bytes)`
+ 
+ 	format a number in data units
+  
+  ```
+   assert.equal(number.toData(126.02 * 1000), '126.0 kB');
+   assert.equal(number.toData(126.32 * 1000), '126.3 kB');
+   assert.equal(number.toData(126.32 * 1000 * 1000), '126.3 MB');
+   assert.equal(number.toData(126.32 * Math.pow(1000, 3)), '126.3 GB');
+   assert.equal(number.toData(126.32 * Math.pow(1000, 4)), '126.3 TB');
+   assert.equal(number.toData(126.32 * Math.pow(1000, 5)), '126.3 PB');
+   assert.equal(number.toData(126.32 * Math.pow(1000, 6)), '126.3 EB');
+   assert.equal(number.toData(126.32 * Math.pow(1000, 7)), '126.3 ZB');
+   assert.equal(number.toData(126.32 * Math.pow(1000, 8)), '126.3 YB');
+  ```
+
+- `toTime(seconds, returnArray = false)`
+
+	format a number in time
+  
+  ```
+   const HOUR = 60 * 60;
+   const DAY = 24 * HOUR;
+   
+   assert.equal(number.toTime(50), '50 sec');
+   assert.equal(number.toTime(60), '1 min');
+   assert.equal(number.toTime(HOUR), '1 hr');
+   assert.equal(number.toTime(DAY), '1 day');
+   assert.equal(number.toTime(DAY * 30), '30 days');
+   assert.equal(number.toTime( (DAY * 2) + 10), '2 days 10 sec');
+   assert.equal(number.toTime( (DAY * 2) + (HOUR * 2) + 32), '2 days 2 hr 32 sec');
+  ```
+
+  format a number in time and return an array
+  
+  ```
+   assert.deepEqual(number.toTime(50, true), [0, 0, 0, 50]);
+   assert.deepEqual(number.toTime(60, true), [0, 0, 1, 0]);
+   assert.deepEqual(number.toTime(HOUR, true), [0, 1, 0, 0]);
+   assert.deepEqual(number.toTime(DAY, true), [1, 0, 0, 0]);
+   assert.deepEqual(number.toTime(DAY * 30, true), [30, 0, 0, 0]);
+   assert.deepEqual(number.toTime( (DAY * 2) + 10, true), [2, 0, 0, 10]);
+   assert.deepEqual(number.toTime( (DAY * 2) + (HOUR * 2) + 32, true), [2, 2, 0, 32]);
+  ```
+
+- `toCurrency(number, precision, decimal, comma)`
+
+	format a number in USD currency (convienience method)
+  
+  ```
+  assert.equal(number.toCurrency(240.658), '$240.66');
+  assert.equal(number.toCurrency(-376240.658), '$-376,240.66');
+  ```
+	
+  If you need to format a number in other currencies, use the NumberFormatter Class. 
+  
+  ```
+  let toGBP = new Glad.number.NumberFormatter("£", false, 2, ',', '.');
+  assert.equal(toGBP(1234567.89), '£1.234.567,89');
+  ```
+  
+- `toPercent(number, comma = ",", decimal = ".")`
+
+	format a number as a percentage
+  
+  ```
+   assert.equal(number.toPercent(43.47576353), '43.48%');
+   assert.equal(number.toPercent(43.47576353, 4), '43.4758%');
+   assert.equal(number.toPercent(43873.47581765327, 4, '*', '\''), "43'873*4758%");
+   assert.equal(number.toPercent(-43.47576353), '-43.48%');
+   assert.equal(number.toPercent(-43.47576353, 4), '-43.4758%');
+  ```
+
+
+- `toPhone(number = "", formatAreaCode = false, extension = false)`
+
+	format a number as a phone number
+  ```
+   assert.equal(number.toPhone(9255551212), "925-555-1212");
+   assert.equal(number.toPhone('9255551212'), "925-555-1212");
+   assert.equal(number.toPhone(9255551212, true), "(925) 555-1212");
+   assert.equal(number.toPhone(9255551212, true, 4528), "(925) 555-1212 x4528");
+  ```
+ 
+### imports
+Imports is a require alias with some nifty features specifically for Glad. When using the imports method, paths are imported relative to your working directory.
+
+Examples: (Assume imports is Glad.imports)
+
+Both controllers and models can be imported without pluralization
+
+`imports('UserModel')` => `require('./models/user')`
+
+Importing the widget model from within the directory `queries/widgets/find-by-name`
+
+`imports('UserModel')` => `require('../../models/user')`
+
+Importing using reverse camelize
+
+`imports('UserQueryMocksTest')` => `require('./test/mocks/query/user')`
+
+Importing normally from within a sub-directory
+
+`imports('classes/fooze')` => `require('../../classes/fooze')`
+
+### Dates
+
+Glad's Date class allows you to create different instances to use for different timezone offsets. To use Glad's Date class you'll need to install moment. `npm install moment --save`
+
+For each example below assume these variables are created.
+
+```
+let moment  = require('moment');
+let utcDate = new Glad.Date(moment);
+let pstDate = new Glad.Date(moment, -8);
+```
+When creating an inistance of Glad.Date, the first argument is moment, and the 2nd is the offset to use. All methods return a Javascript Date Object.
+
+Also assume that the current Date is January 1st 1970 12:00am
+
+- monthsFromNow
+	```
+    utcDate.monthsFromNow(1)  => 1970-02-01T00:00:00.000Z
+    utcDate.monthsFromNow(12) => 1971-01-01T00:00:00.000Z
+    utcDate.monthsFromNow(24) => 1972-01-01T00:00:00.000Z
+	```
+
+
+- weeksFromNow
+
+  ```
+    utcDate.weeksFromNow(1) => 1970-01-08T00:00:00.000Z
+ 	```
+
+- daysFromNow
+
+	```
+  utcDate.daysFromNow(1) => 1970-01-02T00:00:00.000Z
+  utcDate.daysFromNow(10) => 1970-01-11T00:00:00.000Z
+  ```
+
+
+- hoursFromNow
+
+    ```
+    utcDate.hoursFromNow(1) => 1970-01-01T01:00:00.000Z')
+    ```
+
+- minutesFromNow
+
+	```
+  utcDate.minutesFromNow(1) => 1970-01-01T00:01:00.000Z
+  utcDate.minutesFromNow(14) => 1970-01-01T00:14:00.000Z
+  ```
+  
+- secondsFromNow
+
+	```
+  utcDate.secondsFromNow(1)  => 1970-01-01T00:00:01.000Z
+  utcDate.secondsFromNow(10) => 1970-01-01T00:00:10.000Z
+  utcDate.secondsFromNow(61) => 1970-01-01T00:01:01.000Z
+  ```
+
+- startOfSecond
+	
+  Supply a Date Object and this will return a new date object with milliseconds zeroed out.
+  
+
+- startOfMinute
+
+	Supply a Date Object and this will return a new date object with milliseconds and seconds zeroed out.
+
+- startOfHour
+
+	Supply a Date Object and this will return a new date object with milliseconds, seconds and minutes zeroed out.
+  
+- startOfDay
+
+	Supply a Date Object and this will return a new date object with milliseconds, seconds, minutes, and hours zeroed out.
+
+
+
+- startOfWeek
+	
+  Supply a Date Object and this will return a new date object set to the beginning of the week that the supplied date landed in.
+	```
+    let testDate = utcDate.daysFromNow(22);
+    let startOfWeek = utcDate.startOfWeek(testDate);
+    startOfWeek.toISOString() => 1970-01-18T00:00:00.000Z
+  ```
+
+- startOfMonth
+	
+  Supply a Date Object and this will return a new date object set to the beginning of the month that the supplied date landed in.
+	```
+    let testDate = utcDate.daysFromNow(22);
+    utcDate.startOfMonth(testDate) => 1970-01-01T00:00:00.000Z
+  ```
+
+- startOfQuarter
+	
+  Supply a Date Object and this will return a new date object set to the beginning of the quarter that the supplied date landed in.
+  
+	```
+    let testDate = utcDate.daysFromNow(2);
+    utcDate.startOfQuarter(testDate) => 1970-01-01T00:00:00.000Z
+	```
+
+  ```
+    let testDate = utcDate.daysFromNow(100);
+    utcDate.startOfQuarter(testDate) => 1970-04-01T00:00:00.000Z
+  ```
+
+  ```
+    let testDate = utcDate.daysFromNow(270);
+    utcDate.startOfQuarter(testDate) => 1970-07-01T00:00:00.000Z
+  ```
+
+  ```
+    let testDate = utcDate.daysFromNow(300);
+    utcDate.startOfQuarter(testDate) => 1970-10-01T00:00:00.000Z
+  ```
+
+- startOfYear
+	
+  Supply a Date Object and this will return a new date object set to the beginning of the year that the supplied date landed in.
+  
+	```
+    let testDate = utcDate.daysFromNow(300);
+    utcDate.startOfYear(testDate) => 1970-01-01T00:00:00.000Z
+	```
+
+  ```
+    let testDate = utcDate.daysFromNow(366);
+    utcDate.startOfYear(testDate) => 1971-01-01T00:00:00.000Z
+  ```
+
+### Tokenization
+
+The examples below assume the following constants are declared.
+
+```
+const { generate, create, timeCoded, timeDecoded } = Glad.token;
+```
+
+** Uniqueness **
+
+The probability is extremely low that duplicate tokens will be created if you are generating long enough tokens. However, it can happen.
+
+Uniqueness is not built in. It's up to you to ensure uniqueness. If uniqueness is crucial to your use case, please use something more robust or add to the token using unique things such as a database record id.
+
+** Radix **
+
+The default Radix is url safe so your tokens can safely be used in URLs.
+`ABCDEFGHIJKLMNOPQRSTUVWXYZ-0987654321_abcdefghijklmnopqrstuvwxyz`
+
+You can use your own radix or view the ones available under `Glad.token.radixes`.
+
+** create a 6 character token **
+
+`generate(6);`
+
+** create a 12 character token **
+
+`generate(12);`
+
+
+** create a new tokenizer from a provided radix ** 
+
+```
+let myTokenizer = create('0123456789');
+myTokenizer.generate(6) => 6 characters, only digits
+```
+
+** create a TimeEncoded Token ** 
+
+	`let timeToken = timeCoded()`
+    
+** decode a TimeEncoded Token ** 
+	
+	`let tokenCreatedAt = timeDecoded(timeToken)`
+  
+
+
+---
+
+** fig s1 ** - Supported Latin Chars
+```
+'À' => 'A'
+'Á' => 'A'
+'Â' => 'A'
+'Ã' => 'A'
+'Ä' => 'A'
+'Å' => 'A'
+'Æ' => 'Ae'
+'Ç' => 'C'
+'È' => 'E'
+'É' => 'E'
+'Ê' => 'E'
+'Ë' => 'E'
+'Ì' => 'I'
+'Í' => 'I'
+'Î' => 'I'
+'Ï' => 'I'
+'Ð' => 'D'
+'Ñ' => 'N'
+'Ò' => 'O'
+'Ó' => 'O'
+'Ô' => 'O'
+'Õ' => 'O'
+'Ö' => 'O'
+'Ő' => 'O'
+'Ø' => 'O'
+'Ù' => 'U'
+'Ú' => 'U'
+'Û' => 'U'
+'Ü' => 'U'
+'Ű' => 'U'
+'Ý' => 'Y'
+'Þ' => 'Th'
+'ß' => 'ss'
+'à' => 'a'
+'á' => 'a',
+'â' => 'a'
+'ã' => 'a'
+'ä' => 'a'
+'å' => 'a'
+'æ' => 'ae'
+'ç' => 'c'
+'è' => 'e',
+'é' => 'e'
+'ê' => 'e'
+'ë' => 'e'
+'ì' => 'i'
+'í' => 'i'
+'î' => 'i'
+'ï' => 'i'
+'ð' => 'd'
+'ñ' => 'n'
+'ò' => 'o'
+'ó' => 'o'
+'ô' => 'o'
+'õ' => 'o'
+'ö' => 'o'
+'ő' => 'o'
+'ø' => 'o'
+'ù' => 'u'
+'ú' => 'u'
+'û' => 'u'
+'ü' => 'u'
+'ű' => 'u'
+'ý' => 'y'
+'þ' => 'th'
+'ÿ' => 'y'
+```
+
+fig s2 Greek character conversion
+```
+'α' => 'a'
+'β' => 'b'
+'γ' => 'g'
+'δ' => 'd'
+'ε' => 'e'
+'ζ' => 'z'
+'η' => 'h'
+'θ' => '8'
+'ι' => 'i'
+'κ' => 'k'
+'λ' => 'l'
+'μ' => 'm'
+'ν' => 'n'
+'ξ' => '3'
+'ο' => 'o'
+'π' => 'p'
+'ρ' => 'r'
+'σ' => 's'
+'τ' => 't'
+'υ' => 'y'
+'φ' => 'f'
+'χ' => 'x'
+'ψ' => 'ps'
+'ω' => 'w'
+'ά' => 'a'
+'έ' => 'e'
+'ί' => 'i'
+'ό' => 'o'
+'ύ' => 'y'
+'ή' => 'h'
+'ώ' => 'w'
+'ς' => 's'
+'ϊ' => 'i'
+'ΰ' => 'y'
+'ϋ' => 'y'
+'ΐ' => 'i'
+'Α' => 'A'
+'Β' => 'B'
+'Γ' => 'G'
+'Δ' => 'D'
+'Ε' => 'E'
+'Ζ' => 'Z'
+'Η' => 'H'
+'Θ' => '8'
+'Ι' => 'I'
+'Κ' => 'K'
+'Λ' => 'L'
+'Μ' => 'M'
+'Ν' => 'N'
+'Ξ' => '3'
+'Ο' => 'O'
+'Π' => 'P'
+'Ρ' => 'R'
+'Σ' => 'S'
+'Τ' => 'T'
+'Υ' => 'Y'
+'Φ' => 'F'
+'Χ' => 'X'
+'Ψ' => 'PS'
+'Ω' => 'W'
+'Ά' => 'A'
+'Έ' => 'E'
+'Ί' => 'I'
+'Ό' => 'O'
+'Ύ' => 'Y'
+'Ή' => 'H'
+'Ώ' => 'W'
+'Ϊ' => 'I'
+'Ϋ' => 'Y
+```
+
+fig s3 Turkish character conversion
+```
+'ş' => 's'
+'Ş' => 'S'
+'ı' => 'i'
+'İ' => 'I'
+'ğ' => 'g'
+'Ğ' => 'G'
+```
+
+fig s4 Russian character conversion
+```
+'а' => 'a'
+'б' => 'b'
+'в' => 'v'
+'г' => 'g'
+'д' => 'd'
+'е' => 'e'
+'ё' => 'yo'
+'ж' => 'zh'
+'з' => 'z'
+'и' => 'i'
+'й' => 'j'
+'к' => 'k'
+'л' => 'l'
+'м' => 'm'
+'н' => 'n'
+'о' => 'o'
+'п' => 'p'
+'р' => 'r'
+'с' => 's'
+'т' => 't'
+'у' => 'u'
+'ф' => 'f'
+'х' => 'h'
+'ц' => 'c',
+'ч' => 'ch'
+'ш' => 'sh'
+'щ' => 'sh'
+'ъ' => 'u'
+'ы' => 'y'
+'э' => 'e'
+'ю' => 'yu'
+'я' => 'ya'
+'А' => 'A'
+'Б' => 'B'
+'В' => 'V'
+'Г' => 'G'
+'Д' => 'D'
+'Е' => 'E'
+'Ё' => 'Yo'
+'Ж' => 'Zh'
+'З' => 'Z'
+'И' => 'I'
+'Й' => 'J'
+'К' => 'K'
+'Л' => 'L'
+'М' => 'M'
+'Н' => 'N'
+'О' => 'O'
+'П' => 'P'
+'Р' => 'R'
+'С' => 'S'
+'Т' => 'T'
+'У' => 'U'
+'Ф' => 'F'
+'Х' => 'H'
+'Ц' => 'C'
+'Ч' => 'Ch'
+'Ш' => 'Sh'
+'Щ' => 'Sh'
+'Ъ' => 'U'
+'Ы' => 'Y'
+'Ь' => 'Ь'
+'Э' => 'E'
+'Ю' => 'Yu'
+'Я' => 'Ya'
 ```
