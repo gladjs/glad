@@ -536,10 +536,16 @@ module.exports = {
 
  `--only=[controller|controllers,controllers]`
  Using the only flag, you can spin up a server that only binds routes for a specific controller or a group of controllers.
+ 
  As an example, `glad s --only=posts` would launch your app and allow traffic to routes handled by the posts controller.
+ 
  If you would like to launch a group of controllers, you would simply comma separate the controllers such as `glad s --only=posts,users`.
+ 
  The convention is such that you provide the lowercase filename of your controller(s) that should be enabled.
- If you are not using Glad CLI, this will still work. `node index.js --only=posts`
+ 
+ If you are not using Glad CLI, this will still work with the node binary.
+ 
+ `node index.js --only=posts`
 
 #### Server Flags
 
@@ -599,6 +605,10 @@ Assume `string === Glad.string` for the examples below.
   `string.slugify('The brown fox w/ βeta') === 'the-brown-fox-with-beta'`
 
 	`string.slugify('good news so you can :)') === 'good-news-so-you-can-smile'`
+
+  If you need to create a multi-variable slug such as `first_name + " " + last_name` etc... consider allowing slugify to do the concatenation for you. `slugify` can receive "n" arguments which become concatenated to form additional segments of the slug.
+
+  `string.slugify('how to create stuff', 'June 17 2017') === 'how-to-create-stuff-june-17-2017'`
 
 - camelize
 
