@@ -105,6 +105,20 @@ describe("String Tests", function () {
     );
   });
 
+  it("slug:: should slugify multiple arguments", function () {
+    assert.equal(
+      string.slugify("San Francisco", "CA"),
+      "san-francisco-ca"
+    );
+  });
+
+  it("slug:: should slugify multiple arguments (2)", function () {
+    assert.equal(
+      string.slugify("San Francisco", "CA", ", foo"),
+      "san-francisco-ca-foo"
+    );
+  });
+
   it("camelize:: should Camelize string", function () {
     assert.equal(
       string.camelize("fooze-barz"),

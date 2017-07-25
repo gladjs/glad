@@ -141,7 +141,8 @@ module.exports = class GladString {
     return lodash.deburr(deburred);
   }
 
-  slugify (str) {
+  slugify (...args) {
+    let str = args.map(x => x.replace(/^,|,$/, '').trim()).join(' ');
     return this.dasherize(this.deburr(str));
   }
 
