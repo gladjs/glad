@@ -3,3 +3,5 @@ jsdoc/
 docset/
 npm-debug.log
 coverage
+debug
+ms
