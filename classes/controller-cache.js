@@ -24,7 +24,7 @@ module.exports = class ControllerCache {
 
     opts.namespace = this.namespace;
 
-    if (namespace) {
+    if (namespace && opts.namespace !== namespace) {
       opts.namespace += `-${namespace}`;
       this.namespace = opts.namespace;
     }
