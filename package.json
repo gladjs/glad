@@ -1,6 +1,6 @@
 {
   "name": "glad",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A robust Node Js API framework.",
   "main": "index.js",
   "engines": {
