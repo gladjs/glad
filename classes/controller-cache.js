@@ -1,8 +1,10 @@
 const lru = require('redis-lru');
+const debug = require('debug')('glad');
 
 module.exports = class ControllerCache {
 
   constructor (redisClient, controller = 'UNDEFINED-CONTROLLER!', action = 'UNDEFINED-ACTION', options = {}) {
+    debug('ControllerCache:constructor');
     this.client = redisClient;
     this.controller = controller;
     this.namespace = `${controller}#${action}`;
@@ -11,7 +13,7 @@ module.exports = class ControllerCache {
   }
 
   setOptions (opts, rebuild) {
-
+    debug('ControllerCache:setOptions');
     let { strategy, namespace } = opts;
 
     if (strategy === 'LRU') {
@@ -42,6 +44,7 @@ module.exports = class ControllerCache {
   }
 
   cachedVersion (req) {
+    debug('ControllerCache:cachedVersion');
     return this.cache.get(req.url).then(json => json || false);
   }
 

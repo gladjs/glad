@@ -1,10 +1,11 @@
 const { chalk } = require('./../namespace/console');
 const path = require('path');
-
+const debug = require('debug')('glad');
 
 module.exports = class Policy {
 
   constructor (policies, logging, server, policy, controller, action) {
+    debug('Policy:constructor');
     this.policy = policy;
     this.controller = controller;
     this.action = action;
@@ -14,6 +15,7 @@ module.exports = class Policy {
   }
 
   restrict (req, res) {
+    debug('Policy:restrict');
     req.controller = this.controller.name;
     req.action = this.action;
 
@@ -35,15 +37,20 @@ module.exports = class Policy {
 
   acceptor (req, res) {
     return () => {
+      debug('Policy:accept');
       this.runControllerMethod(req, res);
     };
   }
 
   rejector (req, res) {
-    return (custom) => this.policies.onFailure(req, res, custom);
+    return (custom) => {
+      debug('Policy:reject');
+      return this.policies.onFailure(req, res, custom)
+    };
   }
 
   runControllerMethod (req, res) {
+    debug('Policy:runControllerMethod');
     let controller = new this.controller(req, res, this.server.redis);
     if (controller[this.action]) {
       controller[this.action]();

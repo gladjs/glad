@@ -1,9 +1,11 @@
 let { chalk: { ok } } = require('../namespace/console');
 const args = require('optimist').argv;
+const debug   = require('debug')('glad');
 
 module.exports = class Server {
 
   constructor (project) {
+    debug('Server:constructor');
     this.express = require('express');
     this.app = this.express();
     this.server = require('http').createServer(this.app);
@@ -12,7 +14,7 @@ module.exports = class Server {
   }
 
   listen () {
-    
+    debug('Server:listen');
     let { port, host, sock, backlog } = this.project.config;
 
     if (args.port)    port    = Number(args.port);

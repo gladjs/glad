@@ -1,4 +1,5 @@
 const path = require('path');
+const debug         = require('debug')('glad');
 let ControllerCache = require('./controller-cache');
 let { chalk: {info}} = require('../namespace/console');
 let object = require('../namespace/object');
@@ -27,6 +28,7 @@ class Controller {
 
   constructor (req, res, redisClient) {
     let { params, body } = req;
+    debug('Controller:constructor');
     this.req = req;
     this.res = res;
     this.params = params;
@@ -59,6 +61,7 @@ class Controller {
    * user trying to gain admin access to the site, and admin access is determined by the admin key.
    */
   permit (...keys) {
+    debug('Controller:permit');
     let i = 0;
     let len = keys.length;
     let ref = {};
@@ -78,6 +81,7 @@ class Controller {
    * This method is similar to permit, only it also permits subdocuments.
    */
   deepPermit(...keys) {
+    debug('Controller:deepPermit');
     let i = 0;
     let len = keys.length;
     let ref = {};
@@ -93,7 +97,8 @@ class Controller {
    * The default error response for the controller
    * @param {object} error - The error that occured. Providing `status` on the error object will set the HTTP Status code on the respone.
    */
-  error (err) {
+  error (err = {}) {
+    debug('Controller:error');
     this.res.status(err.status || 500).json(err)
   }
 
@@ -164,6 +169,7 @@ class Controller {
   * @param {function} fn - (optional) the method to call for a cache miss.
   */
   cache (options, fn) {
+    debug('Controller:cache');
     var cache = new ControllerCache(this.redisClient, this.req.controller, this.req.action, options);
     var hitFn, missFn;
 
@@ -267,6 +273,7 @@ class Controller {
    * ```
    */
   actionCache (action) {
+    debug('Controller:actionCache');
     let _cache    = new ControllerCache(this.redisClient, this.req.controller, action);
     let { cache } = _cache;
     return cache;
@@ -289,6 +296,7 @@ class Controller {
    * ```
    */
    render (...args) {
+    debug('Controller:render');
      args[0] = path.join(this.viewPath, args[0]);
      this.res.render.apply(this.res, args);
    }

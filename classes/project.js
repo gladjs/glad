@@ -5,11 +5,12 @@ let { get } = require('../namespace/object');
 let { chalk } = require('../namespace/console');
 let { ok, error } = chalk;
 let { exit } = process;
+const debug = require('debug')('glad');
 
 module.exports = class Project {
 
   constructor (projectPath) {
-    
+    debug('Project:constructor');
     this.cliPath         = path.join(__dirname, '../..');
     this.projectPath     = projectPath || process.cwd();
     this.packagePath     = path.join(this.projectPath, "package.json");
@@ -26,6 +27,7 @@ module.exports = class Project {
   }
 
   initialize () {
+    debug('Project:initialize');
     if (this.isProject()) {
       this.config = require(this.configPath);
       this.orm    = this.config.orm || 'mongoose';
@@ -39,7 +41,7 @@ module.exports = class Project {
   }
 
   isProject () {
-
+    debug('Project:isProject');
     let hasPackageFile = fs.existsSync(this.packagePath);
 
     if (hasPackageFile) {

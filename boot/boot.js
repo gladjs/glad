@@ -13,6 +13,7 @@ let RequestEnd     = require('./after-request');
 let Cache          = require('../namespace/cache');
 let exposeModelsGlobally  = require('./expose-models-globally');
 let RequestIdentifier     = require('./request-identifier');
+const debug   = require('debug')('glad');
 
 Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
@@ -20,6 +21,7 @@ Promise.promisifyAll(redis.Multi.prototype);
 module.exports = class Boot {
 
   constructor (cwd = false) {
+    debug('Boot:constructor');
     this.project = new Project(cwd);
     this.project.initialize();
   }
@@ -52,6 +54,7 @@ module.exports = class Boot {
   }
 
   createServer () {
+    debug('Boot:createServer');
     return new Promise( resolve => {
       this.server = new Server(this.project);
       resolve();
@@ -59,6 +62,7 @@ module.exports = class Boot {
   }
 
   connectToRedis () {
+    debug('Boot:connectToRedis');
     return new Promise( resolve => {
       let { config } = this.project;
       this.server.redis = redis.createClient(config.redis);
@@ -67,16 +71,18 @@ module.exports = class Boot {
   }
 
   gladCache () {
+    debug('Boot:gladCache');
     Glad.cache = new Cache(this.server, this.project);
     return new Promise.resolve();
   }
 
   init () {
+    debug('Boot:init');
     return new Initializer(this.project, this.server).initialize();
   }
 
   connectToMongo () {
-
+    debug('Boot:connectToMongo');
     let { config } = this.project;
 
     if (config.orm === 'mongoose' && config.mongodb) {
@@ -89,6 +95,7 @@ module.exports = class Boot {
   }
 
   id () {
+    debug('Boot:id');
     return new Promise( resolve => {
       let identifier = new RequestIdentifier(this.project);
       this.server.app.use(identifier.id.bind(identifier));
@@ -97,11 +104,13 @@ module.exports = class Boot {
   }
 
   disablePoweredBy () {
+    debug('Boot:disablePoweredBy');
     this.server.app.disable('x-powered-by');
     return Promise.resolve();
   }
 
   getMiddleware () {
+    debug('Boot:getMiddleware');
     return new Promise( resolve => {
       this.project.middleware = require(join(this.project.projectPath, 'middleware'));
       resolve();
@@ -109,12 +118,14 @@ module.exports = class Boot {
   }
 
   getHooks () {
+    debug('Boot:getHooks');
     this.project.hooks = require(join(this.project.projectPath, 'hooks'));
     return Promise.resolve();
   }
 
   // THIS NEEDS TO BE MOVED IN THE ROUTER CHAIN vvvvvvvvvvv
   after () {
+    debug('Boot:after');
     return new Promise( resolve => {
       let after = new RequestEnd(this.project);
       this.server.app.use(after.end.bind(after));
@@ -127,6 +138,7 @@ module.exports = class Boot {
    * Otherwise it is assumed that a roll your own implementation or no sessions will be used.
    */
   session () {
+    debug('Boot:session');
     return new Promise( resolve => {
       let { config } = this.project;
       if (config.session) {
@@ -157,6 +169,7 @@ module.exports = class Boot {
    * Otherwise look for setupWebsockets in the config, if it exists, pass the setup over to there and waith for that promise to resolve.
    */
   attachSessionToWebsockets () {
+    debug('Boot:attachSessionToWebsockets');
     return new Promise( resolve => {
       let { config } = this.project;
       if (config.session) {
@@ -180,6 +193,7 @@ module.exports = class Boot {
   }
 
   createRouter () {
+    debug('Boot:createRouter');
     return new Promise( (resolve, reject) => {
       this.router = new Router(this.project, this.server);
       this.router.buildRoutes().then(resolve).catch(reject);
@@ -187,6 +201,7 @@ module.exports = class Boot {
   }
 
   exposeModels () {
+    debug('Boot:exposeModels');
     let { config } = this.project;
     return new Promise( (resolve, reject) => {
       if (config.exposeModelsGlobally && config.orm === 'mongoose') {
@@ -200,6 +215,7 @@ module.exports = class Boot {
   }
 
   middleware () {
+    debug('Boot:middleware');
     return new Promise( (resolve, reject) => {
       Promise.each(this.project.middleware, exec => exec(this.server))
         .then(resolve)
@@ -212,6 +228,7 @@ module.exports = class Boot {
    * This is wrapped in a try/catch because we don't expect that this method will be there (especially if the project is not using glad-cli).
    */
   initializeWaterline () {
+    debug('Boot:initializeWaterline');
     return new Promise( (resolve, reject) => {
       if (this.project.orm === 'waterline') {
         try {
@@ -229,6 +246,7 @@ module.exports = class Boot {
   }
 
   drawSocketIo () {
+    debug('Boot:drawSocketIo');
     return new Promise( resolve => {
       try {
         let socketRouter  = require(`${this.project.projectPath}/sockets/router`);
@@ -257,6 +275,7 @@ module.exports = class Boot {
   }
 
   draw () {
+    debug('Boot:draw');
     return new Promise( resolve => {
       let key;
       for (key in this.router.routes) {
@@ -278,6 +297,7 @@ module.exports = class Boot {
   }
 
   setViewEngine () {
+    debug('Boot:setViewEngine');
     let { config } = this.project;
     this.server.app.set('view engine', config.defaultViewEngine || 'pug');
     return Promise.resolve();
