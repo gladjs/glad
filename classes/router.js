@@ -5,12 +5,13 @@ const policy  = require('./policy');
 const bodyParser = require('body-parser');
 const args    = require('optimist').argv;
 const lodash  = require('lodash');
-const debug   = require('debug')('glad');
+const debug   = require('debug');
 
 module.exports = class Router {
 
   constructor (project, server) {
-    debug('Router:constructor');
+    this.debug    = debug('glad'); 
+    this.debug('Router:constructor');
     this.project  = project;
     this.server   = server;
     this.routes   = {};
@@ -26,7 +27,7 @@ module.exports = class Router {
    * Builds out the router object
    */
   buildRoutes () {
-    debug('Router:buildRoutes');
+    this.debug('Router:buildRoutes');
     return new Promise( (resolve, reject) => {
       this.setRoutes();
       this.setControllers();
@@ -43,7 +44,7 @@ module.exports = class Router {
    * Requires all of the routes for the application and stores them at Router.routes
    */
   setRoutes () {
-    debug('Router:setRoutes');
+    this.debug('Router:setRoutes');
     this.setObjectsForSegment(this.project.routesPath, 'routes', 'Router');
   }
 
@@ -51,7 +52,7 @@ module.exports = class Router {
    * Requires all of the models for the application and stores them at Router.models
    */
   setModels () {
-    debug('Router:setModels');
+    this.debug('Router:setModels');
     this.setObjectsForSegment(this.project.modelsPath, 'models', 'Model');
   }
 
@@ -59,7 +60,7 @@ module.exports = class Router {
    * Requires all of the controllers for the application and stores them at Router.controllers
    */
   setControllers () {
-    debug('Router:setControllers');
+    this.debug('Router:setControllers');
     this.setObjectsForSegment(this.project.controllersPath, 'controllers', 'Controller');
   }
 
@@ -67,7 +68,7 @@ module.exports = class Router {
    * Gets the file paths for all of the .js files in a directory [path]
    */
   getFilesForPath (path) {
-    debug('Router:getFilesForPath');
+    this.debug(`Router:getFilesForPath - gets all js files in ${path}`);
     let paths = fs.readdirSync(path).filter(file => /(\.js)$/.test(file));
     let only = args.only && args.only.split(',').map(x => `${x}.js`); 
     /**
@@ -90,7 +91,7 @@ module.exports = class Router {
    * error   The humanized name of the segment that is being created
    */
   setObjectsForSegment (fpath, segment, error) {
-    debug('Router:setObjectsForSegment');
+    this.debug(`Router:setObjectsForSegment ${segment}`);
     this.getFilesForPath(fpath).forEach(file => {
       let ref = path.join (fpath, file);
       try {
@@ -112,7 +113,7 @@ module.exports = class Router {
    * - Allow the engineer to override both the parser and the options.
    */
   bodyParser (config) {
-    debug('Router:bodyParser');
+    this.debug('Router:bodyParser');
     let type, options;
     if (config.bodyParser) {
       type = config.bodyParser.parser || this.config.defaultBodyParser && this.config.defaultBodyParser.type;
@@ -127,7 +128,7 @@ module.exports = class Router {
   }
 
   setViewPath (config) {
-    debug('Router:setViewPath');
+    this.debug('Router:setViewPath');
     return (req, res, next) => {
       req.__rootViewPath = `${this.project.viewsPath}`;
       req.viewPath = req.__rootViewPath + config.action;
@@ -141,12 +142,13 @@ module.exports = class Router {
   * - Register the route and send the request through the body-parser then check the policy then finally the controller.
   */
   route (method, config) {
-    debug('Router:route');
+    this.debug(`Router:route ${config.path} => ${config.controller.name}#${config.action}`);
     let { path, controller, action } = config;
     let bodyParser = this.bodyParser(config);
     let viewPath = this.setViewPath(config);
     method = method.toLowerCase();
     return this.server.app[method](path, bodyParser, viewPath, (req, res) => {
+      debug('glad')('Router:apply %s => %s#%s with policy %s', path, controller.name, action, config.policy || 'none');
       return new policy(this.policies, this.logging, this.server, config.policy, controller, action).restrict(req, res);
     });
   }

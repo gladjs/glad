@@ -1,21 +1,26 @@
-const lru = require('redis-lru');
-const debug = require('debug')('glad');
+const lru            = require('redis-lru');
+const debugLogger    = require('debug');
+const debugNamespace = Symbol('debugNamespace');
+const debug          = Symbol('debug');
 
 module.exports = class ControllerCache {
 
   constructor (redisClient, controller = 'UNDEFINED-CONTROLLER!', action = 'UNDEFINED-ACTION', options = {}) {
-    debug('ControllerCache:constructor');
     this.client = redisClient;
     this.controller = controller;
     this.namespace = `${controller}#${action}`;
     this.setOptions(options);
     this.cache = lru(this.client, this.options);
+    this[debugNamespace] = debugLogger('glad');
+    this[debug]('Created ControllerCache Instance');
+  }
+
+  [debug] (name) {
+    this[debugNamespace]("ControllerCache %s", name);
   }
 
   setOptions (opts, rebuild) {
-    debug('ControllerCache:setOptions');
     let { strategy, namespace } = opts;
-
     if (strategy === 'LRU') {
       opts.score = () => new Date().getTime();
       opts.increment = false;
@@ -44,7 +49,7 @@ module.exports = class ControllerCache {
   }
 
   cachedVersion (req) {
-    debug('ControllerCache:cachedVersion');
+    this[debug]('Cached Version');
     return this.cache.get(req.url).then(json => json || false);
   }
 

@@ -1,9 +1,11 @@
 const path = require('path');
-const debug         = require('debug')('glad');
-let ControllerCache = require('./controller-cache');
-let { chalk: {info}} = require('../namespace/console');
-let object = require('../namespace/object');
-let types = require('../namespace/type');
+const debugLogger     = require('debug');
+const debugNamespace  = Symbol('debugNamespace');
+const debug           = Symbol('debug');
+const ControllerCache = require('./controller-cache');
+const { chalk: {info}} = require('../namespace/console');
+const object  = require('../namespace/object');
+const types   = require('../namespace/type');
 
 /**
  * Controller Class.
@@ -28,7 +30,6 @@ class Controller {
 
   constructor (req, res, redisClient) {
     let { params, body } = req;
-    debug('Controller:constructor');
     this.req = req;
     this.res = res;
     this.params = params;
@@ -36,6 +37,12 @@ class Controller {
     this.redisClient = redisClient;
     this.cacheStore = {};
     this.viewPath = req.controller.replace('Controller', '').toLowerCase();
+    this[debugNamespace] = debugLogger('glad');
+    this[debug]('Created Controller Instance');
+  }
+
+  [debug] (name) {
+    this[debugNamespace]("Controller: %s > %s", name, this.req.id);
   }
 
   /**
@@ -61,7 +68,7 @@ class Controller {
    * user trying to gain admin access to the site, and admin access is determined by the admin key.
    */
   permit (...keys) {
-    debug('Controller:permit');
+    this[debug]('permit');
     let i = 0;
     let len = keys.length;
     let ref = {};
@@ -81,7 +88,7 @@ class Controller {
    * This method is similar to permit, only it also permits subdocuments.
    */
   deepPermit(...keys) {
-    debug('Controller:deepPermit');
+    this[debug]('deepPermit');
     let i = 0;
     let len = keys.length;
     let ref = {};
@@ -98,7 +105,7 @@ class Controller {
    * @param {object} error - The error that occured. Providing `status` on the error object will set the HTTP Status code on the respone.
    */
   error (err = {}) {
-    debug('Controller:error');
+    this[debug]('error');
     this.res.status(err.status || 500).json(err)
   }
 
@@ -169,7 +176,7 @@ class Controller {
   * @param {function} fn - (optional) the method to call for a cache miss.
   */
   cache (options, fn) {
-    debug('Controller:cache');
+    this[debug]('cache');
     var cache = new ControllerCache(this.redisClient, this.req.controller, this.req.action, options);
     var hitFn, missFn;
 
@@ -182,10 +189,11 @@ class Controller {
     if (fn) {
       return cache.cachedVersion(this.req).then(result => {
         if (result) {
-          info('CACHE: HIT');
+          this[debug]('cache:callback:hit');
           this.res.set('X-GLAD-CACHE-HIT', 'true');
           return this.res.type(options.type || 'json').send(result);
         } else {
+          this[debug]('cache:callback:miss');
           return fn.call(this, (content) => {
             return cache.cache.set(this.req.url, content);
           });
@@ -200,6 +208,7 @@ class Controller {
             cache.cachedVersion(this.req).then(result => {
 
               if (result) {
+                this[debug]('cache:exec:hit');
                 this.res.set('X-Glad-Cache-Hit', 'true');
               }
 
@@ -210,11 +219,13 @@ class Controller {
                 this.res.type(options.type || 'json').send(result);
                 resolve(result);
               } else if (missFn) {
+                this[debug]('cache:exec:miss');
                 missFn(data => {
                   cache.cache.set(this.req.url, data);
                   resolve(data);
                 });
               } else {
+                this[debug]('cache:exec:error');
                 reject({
                   err: `
                     Missing method Error.
@@ -273,7 +284,7 @@ class Controller {
    * ```
    */
   actionCache (action) {
-    debug('Controller:actionCache');
+    this[debug]('actionCache');
     let _cache    = new ControllerCache(this.redisClient, this.req.controller, action);
     let { cache } = _cache;
     return cache;
@@ -295,11 +306,11 @@ class Controller {
    * this.res.render('path/to/view', data);
    * ```
    */
-   render (...args) {
-    debug('Controller:render');
-     args[0] = path.join(this.viewPath, args[0]);
-     this.res.render.apply(this.res, args);
-   }
+  render (...args) {
+    this[debug]('render');
+    args[0] = path.join(this.viewPath, args[0]);
+    this.res.render.apply(this.res, args);
+  }
 
 }
 

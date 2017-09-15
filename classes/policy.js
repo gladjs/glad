@@ -1,21 +1,21 @@
 const { chalk } = require('./../namespace/console');
 const path = require('path');
-const debug = require('debug')('glad');
+const debug = require('debug');
 
 module.exports = class Policy {
 
   constructor (policies, logging, server, policy, controller, action) {
-    debug('Policy:constructor');
     this.policy = policy;
     this.controller = controller;
     this.action = action;
     this.server = server;
     this.policies = policies;
     this.logging = logging;
+    this.debug = debug('glad');
   }
 
   restrict (req, res) {
-    debug('Policy:restrict');
+    this.debug('Policy: evaluating > %s', req.id);
     req.controller = this.controller.name;
     req.action = this.action;
 
@@ -24,33 +24,37 @@ module.exports = class Policy {
     }
 
     if (this.policy) {
+      this.debug('Policy: lookup %s > %s', this.policy, req.id);
       if (this.policies[this.policy]) {
+        this.debug('Policy: apply %s > %s', this.policy, req.id);
         this.policies[this.policy](req, res, this.acceptor(req, res), this.rejector(req, res));
       } else {
+        this.debug('Policy: %s not found [error] %s', this.policy, req.id);
         chalk.error(`Policy Error: ${req.id || ''} The policy "${this.policy}" does not exist, therefore the request was denied`);
         this.policies.onFailure(req, res);
       }
     } else {
+      this.debug('Policy: no policy to apply > %s', req.id);
       this.runControllerMethod(req, res);
     }
   }
 
   acceptor (req, res) {
     return () => {
-      debug('Policy:accept');
+      this.debug('Policy:accept > %s', req.id);
       this.runControllerMethod(req, res);
     };
   }
 
   rejector (req, res) {
     return (custom) => {
-      debug('Policy:reject');
+      this.debug('Policy:reject > %s', req.id);
       return this.policies.onFailure(req, res, custom)
     };
   }
 
   runControllerMethod (req, res) {
-    debug('Policy:runControllerMethod');
+    this.debug('Policy:runControllerMethod > %s', req.id);
     let controller = new this.controller(req, res, this.server.redis);
     if (controller[this.action]) {
       controller[this.action]();
@@ -61,15 +65,3 @@ module.exports = class Policy {
   }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-//
