@@ -13,17 +13,23 @@ let RequestEnd     = require('./after-request');
 let Cache          = require('../namespace/cache');
 let exposeModelsGlobally  = require('./expose-models-globally');
 let RequestIdentifier     = require('./request-identifier');
-const debug   = require('debug')('glad');
-
+const _debug        = require('debug');
+const debug         = Symbol('debug');
+const debugNamespace = Symbol('debugNamespace');
 Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
 
 module.exports = class Boot {
 
   constructor (cwd = false) {
-    debug('Boot:constructor');
+    this[debugNamespace] = _debug('glad');
+    this[debug]('Boot:constructor');
     this.project = new Project(cwd);
     this.project.initialize();
+  }
+
+  [debug] (msg) {
+    this[debugNamespace]('Boot: %s', msg);
   }
 
   exec () {
@@ -54,7 +60,7 @@ module.exports = class Boot {
   }
 
   createServer () {
-    debug('Boot:createServer');
+    this[debug]('createServer');
     return new Promise( resolve => {
       this.server = new Server(this.project);
       resolve();
@@ -62,7 +68,7 @@ module.exports = class Boot {
   }
 
   connectToRedis () {
-    debug('Boot:connectToRedis');
+    this[debug]('connectToRedis');
     return new Promise( resolve => {
       let { config } = this.project;
       this.server.redis = redis.createClient(config.redis);
@@ -71,18 +77,18 @@ module.exports = class Boot {
   }
 
   gladCache () {
-    debug('Boot:gladCache');
+    this[debug]('gladCache');
     Glad.cache = new Cache(this.server, this.project);
     return new Promise.resolve();
   }
 
   init () {
-    debug('Boot:init');
+    this[debug]('init');
     return new Initializer(this.project, this.server).initialize();
   }
 
   connectToMongo () {
-    debug('Boot:connectToMongo');
+    this[debug]('connectToMongo');
     let { config } = this.project;
 
     if (config.orm === 'mongoose' && config.mongodb) {
@@ -95,7 +101,7 @@ module.exports = class Boot {
   }
 
   id () {
-    debug('Boot:id');
+    this[debug]('id');
     return new Promise( resolve => {
       let identifier = new RequestIdentifier(this.project);
       this.server.app.use(identifier.id.bind(identifier));
@@ -104,13 +110,13 @@ module.exports = class Boot {
   }
 
   disablePoweredBy () {
-    debug('Boot:disablePoweredBy');
+    this[debug]('disablePoweredBy');
     this.server.app.disable('x-powered-by');
     return Promise.resolve();
   }
 
   getMiddleware () {
-    debug('Boot:getMiddleware');
+    this[debug]('getMiddleware');
     return new Promise( resolve => {
       this.project.middleware = require(join(this.project.projectPath, 'middleware'));
       resolve();
@@ -118,14 +124,14 @@ module.exports = class Boot {
   }
 
   getHooks () {
-    debug('Boot:getHooks');
+    this[debug]('getHooks');
     this.project.hooks = require(join(this.project.projectPath, 'hooks'));
     return Promise.resolve();
   }
 
   // THIS NEEDS TO BE MOVED IN THE ROUTER CHAIN vvvvvvvvvvv
   after () {
-    debug('Boot:after');
+    this[debug]('after');
     return new Promise( resolve => {
       let after = new RequestEnd(this.project);
       this.server.app.use(after.end.bind(after));
@@ -138,9 +144,17 @@ module.exports = class Boot {
    * Otherwise it is assumed that a roll your own implementation or no sessions will be used.
    */
   session () {
-    debug('Boot:session');
+    this[debug]('session');
     return new Promise( resolve => {
       let { config } = this.project;
+      let userSessionModule;
+
+      try {
+        userSessionModule = require(path.join(this.project.projectPath, '/session'));
+      } catch (err) {
+        userSessionModule = false;
+      }
+
       if (config.session) {
 
         let options = extend({
@@ -157,8 +171,24 @@ module.exports = class Boot {
           name : config.cookie.name
         });
 
-        this.server.app.use(this._sessions);
-
+        this.server.app.use( (req, res, next) => {
+          let debugMiddleware = _debug('glad');
+          debugMiddleware('Session:middleware');
+          if (userSessionModule) {
+            debugMiddleware('Session:middleware: using session.js');
+            userSessionModule(req, res, next).then(result => {
+              if (result) {
+                debugMiddleware('Session:middleware: session.js > Use Glad Session');
+                this._sessions(req, res, next);
+              } else {
+                debugMiddleware('middleware: session.js > Not using Session');
+              }
+            });
+          } else {
+            debugMiddleware('middleware: Using Glad Session');
+            this._sessions(req, res, next);
+          }
+        });
       }
       resolve();
     });
@@ -169,7 +199,7 @@ module.exports = class Boot {
    * Otherwise look for setupWebsockets in the config, if it exists, pass the setup over to there and waith for that promise to resolve.
    */
   attachSessionToWebsockets () {
-    debug('Boot:attachSessionToWebsockets');
+    this[debug]('attachSessionToWebsockets');
     return new Promise( resolve => {
       let { config } = this.project;
       if (config.session) {
@@ -193,7 +223,7 @@ module.exports = class Boot {
   }
 
   createRouter () {
-    debug('Boot:createRouter');
+    this[debug]('createRouter');
     return new Promise( (resolve, reject) => {
       this.router = new Router(this.project, this.server);
       this.router.buildRoutes().then(resolve).catch(reject);
@@ -201,7 +231,7 @@ module.exports = class Boot {
   }
 
   exposeModels () {
-    debug('Boot:exposeModels');
+    this[debug]('exposeModels');
     let { config } = this.project;
     return new Promise( (resolve, reject) => {
       if (config.exposeModelsGlobally && config.orm === 'mongoose') {
@@ -215,7 +245,7 @@ module.exports = class Boot {
   }
 
   middleware () {
-    debug('Boot:middleware');
+    this[debug]('middleware');
     return new Promise( (resolve, reject) => {
       Promise.each(this.project.middleware, exec => exec(this.server))
         .then(resolve)
@@ -228,9 +258,10 @@ module.exports = class Boot {
    * This is wrapped in a try/catch because we don't expect that this method will be there (especially if the project is not using glad-cli).
    */
   initializeWaterline () {
-    debug('Boot:initializeWaterline');
+    this[debug]('initializeWaterline');
     return new Promise( (resolve, reject) => {
       if (this.project.orm === 'waterline') {
+        this[debug]('initializeWaterline: Using Waterline');
         try {
           let hooks = require(`${this.project.projectPath}/hooks`);
           hooks.initializeWaterline(this.router).then(resolve).catch(reject);
@@ -239,6 +270,7 @@ module.exports = class Boot {
           reject("It seems like you have initialized this project to use waterline, but you are missing the onAfterModels hook in your hooks file.");
         }
       } else {
+        this[debug]('initializeWaterline: Not using Waterline');
         // no need to initialize for waterline.
         resolve();
       }
@@ -246,21 +278,29 @@ module.exports = class Boot {
   }
 
   drawSocketIo () {
-    debug('Boot:drawSocketIo');
+    this[debug]('drawSocketIo');
     return new Promise( resolve => {
       try {
         let socketRouter  = require(`${this.project.projectPath}/sockets/router`);
         let socketPolicies = require(`${this.project.projectPath}/sockets/policies`);
         this.server.websockets.on('connection', conn => {
+          let connectionDebug = _debug('glad');
+          connectionDebug('WebSocket:connection');
           socketRouter.forEach(route => {
+            connectionDebug('WebSocket:connection: Drawing Route for %s', route.event);
             conn.on(route.event, data => {
+              let routeDebug = _debug('glad');
+              routeDebug('WebSocket:Route: Received %s', route.event);
               if (route.policy && socketPolicies[route.policy]) {
+                routeDebug('WebSocket:Route: Applying policy for %s', route.event);
                 socketPolicies[route.policy](conn, () => {
+                  routeDebug('WebSocket:Route: Policy accepted for %s', route.event);
                   route.action.call(this.server.websockets, data, conn);
                 });
               } else if (route.policy) {
                 error(`WS: The route for the ${route.event} event requires a policy, but the socket policy does not exist. Please ensure that it is defined in ${this.project.projectPath}/sockets/policies.js`);
               } else {
+                routeDebug('WebSocket:Route: No policy for %s > Calling action', route.event);
                 route.action.call(this.server.websockets, data, conn);
               }
             });
@@ -268,6 +308,7 @@ module.exports = class Boot {
         });
         resolve();
       } catch (err) {
+        this[debug]('Not using websockets');
         log("Not using websockets");
         resolve();
       }
@@ -275,7 +316,7 @@ module.exports = class Boot {
   }
 
   draw () {
-    debug('Boot:draw');
+    this[debug]('draw');
     return new Promise( resolve => {
       let key;
       for (key in this.router.routes) {
@@ -297,7 +338,7 @@ module.exports = class Boot {
   }
 
   setViewEngine () {
-    debug('Boot:setViewEngine');
+    this[debug]('setViewEngine');
     let { config } = this.project;
     this.server.app.set('view engine', config.defaultViewEngine || 'pug');
     return Promise.resolve();
