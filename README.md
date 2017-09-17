@@ -1596,7 +1596,7 @@ module.exports = function () {
         return unirest.get(`http://some-url-or-localhost/api/city-metrics/${city.slug}`).end(resolve);
       });
     });
-    Promise.all(promises).then(x => process.exit(0));
+    Promise.all(promises).then(() => process.exit(0));
   });
 };
 ```
