@@ -49,7 +49,7 @@ Furthermore, Glad supports MVC and comes bundled with Pug (formerly Jade). Under
 
 If you are familiar with Node JS, then getting started with Glad is absolutely painless. If you are new to Node JS, then you should move along quite nicely and Glad will kick start your project in superhero fashion. In fact, you can get a REST API up and running in a matter of minutes after initializing your project.
 
-<br/>
+<br>
 
 ## Installation
 
@@ -256,6 +256,31 @@ If you plan to render views, you should also have `views/user/some-view.pug`
 - controller
 - view folder
 
+<br>
+
+## Sessions
+
+Glad will automatically handle sessions for you. 
+However, sometimes you may not want this, or you have a different use case.
+If you remove the session object key from `config.js`, Glad will not handle sessions for you. 
+It will be up to you to implement it on your own. 
+You would likely want to do this in `middleware.js`. 
+You can also do a hybrid implementation where glad will handle the session in some cases, and not in others.
+In order to accomplish this, you will need to create a file in your App's root directory called session.js.
+This file should export a method that receives `req, res, next` and returns a Promise. If you resolve the promise with true, Glad will use it's session middleware, if you resolve with false, Glad will not use session middleware for the request. This allows you to choose whether or not you want to use a session on a request by request basis. It's important that if you do resolve with false, that you invoke `next()`, otherwise the middleware chain will halt and the request will stall then timeout. Futhermore, if you resolve with true, do not invoke `next()`.
+
+#### TLDR:
+
+- if you create a file named session.js, Glad will route the middleware through it first.
+- session.js must return a Promise
+- resolving true tells Glad to implement the session.
+- resolving false tells Glad not to implement the session.
+- invoking `next()` and resolving with `true` is a bad idea.
+- not invoking `next()` and resolving with `false` will break your App.
+- if you don't create the session.js file, Glad will handle sessions normally.
+- If you don't want to use sessions at all, remove the session object key from `config.js`
+
+<br>
 
 ## Routing
 
@@ -426,7 +451,7 @@ See [req.body](https://expressjs.com/en/api.html#req.body)
 
 ### redisClient
 
-Initialzed redis client. See [redis package on NPM](https://www.npmjs.com/package/redis)
+Initialized redis client. See [redis package on NPM](https://www.npmjs.com/package/redis)
 
 ### permit / deepPermit / permitted
 
@@ -460,10 +485,6 @@ The render method is an enhanced version of Express' **res.render**. Calling `th
 
 <br><br>
 
-## Models
-
-
-<br><br>
 
 ## Web Sockets / Real Time API
 <img src="https://socket.io/assets/img/logo.svg" height="35px">
@@ -528,7 +549,6 @@ module.exports = {
   }
 };
 ```
-
 
 ## Flags
 
@@ -1545,3 +1565,47 @@ fig s4 Russian character conversion
 'Ю' => 'Yu'
 'Я' => 'Ya'
 ```
+<br>
+
+## Using Debug.js
+
+Running `DEBUG=glad* node index.js` will log most of the Glad.js internals.
+
+## Other 
+
+#### How should I handle Cache Warming?
+
+Sometimes you'll want to warm your controller#action caches.
+This can be achieved a few ways.
+
+#### Using The API Itself
+
+Start your server, then automate requests to it by using a library such as unirest in conjunction with glad-cli's run command. Below is an example of what warming some popular city metrics might look like.
+ 
+```js
+const unirest = require('unirest');
+
+module.exports = function () {
+ CityMetric.find()
+  .sort('popularity')
+  .select({slug: 1})
+  .limit(500)
+  .then(cities => {
+    const promises = cities.map(city => {
+      return new Promise( (resolve, reject) => {
+        return unirest.get(`http://some-url-or-localhost/api/city-metrics/${city.slug}`).end(resolve);
+      });
+    });
+    Promise.all(promises).then(x => process.exit(0));
+  });
+};
+```
+ 
+ ```sh
+ # Execute the run command with the path to the warming script.
+ glad run warming/channel-metrics
+ ```
+ 
+ #### Working directly with redis or Glad.cache
+ 
+If you would prefer to warm your caches via working directly with Redis, or `Glad.cache`, you can do that as well. However, we won't cover this topic right here. If you want to work directly with redis, please read about this in the redis documentation. If you would like to read about how to work with Glad.cache, please read the section pertaining to this.
