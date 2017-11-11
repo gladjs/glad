@@ -13,9 +13,9 @@ let RequestEnd     = require('./after-request');
 let Cache          = require('../namespace/cache');
 let exposeModelsGlobally  = require('./expose-models-globally');
 let RequestIdentifier     = require('./request-identifier');
-const _debug        = require('debug');
-const debug         = Symbol('debug');
-const debugNamespace = Symbol('debugNamespace');
+const _debug          = require('debug');
+const debug           = Symbol('debug');
+const debugNamespace  = Symbol('debugNamespace');
 Promise.promisifyAll(redis.RedisClient.prototype);
 Promise.promisifyAll(redis.Multi.prototype);
 
@@ -94,7 +94,7 @@ module.exports = class Boot {
     if (config.orm === 'mongoose' && config.mongodb) {
       return new Promise( resolve => {
         let mongoose = require('mongoose');
-        mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database);
+        mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database, { useMongoClient: true });
         resolve();
       });
     }
