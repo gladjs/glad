@@ -816,6 +816,18 @@ Assume object refences Glad.object
     assert.equal(o.a, undefined);
   ```
 
+- createShallowInvertedClone
+
+  Creates an inverted shallow clone of an object. This is particulary useful when creating data maps. As an example say that you want an Object called usStatesToAbbreviations that acts as a map of U.S States to their respective abbreviation. It would be easy to create the inverse object from it via `createShallowInvertedClone`, which would generate a map of U.S State Abbreviations to their respective State.
+
+  ```
+    let o = {a: 'A', b: 'B'};
+    let x = createShallowInvertedClone(o);  // Glad.object.createShallowInvertedClone
+    assert.deepEqual(x, {A: 'a', B: 'b'});
+    assert.equal(x.a, undefined);           // Non-inverted keys should not be present
+    assert.deepEqual(o, {a: 'A', b: 'B'});  // Original should be non-inverted
+  ```
+
 - select
 
 	select keys from an object (creates a new object)

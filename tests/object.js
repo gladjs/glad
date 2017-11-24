@@ -3,7 +3,7 @@ let object = require('../namespace/object');
 let {
   hasPath, set, get,
   extend, clone,
-  arrayToObject, invert,
+  arrayToObject, invert, createShallowInvertedClone,
   select, drop, selectCombination, format, explode
 } = object;
 
@@ -90,6 +90,14 @@ describe("Object Methods", function () {
     invert(o);
     assert.deepEqual(o, {A: 'a', B: 'b'});
     assert.equal(o.a, undefined);
+  });
+
+  it("createShallowInvertedClone:: should create a shallow inverted clone", function () {
+    let o = {a: 'A', b: 'B'};
+    let x = createShallowInvertedClone(o);
+    assert.deepEqual(x, {A: 'a', B: 'b'});
+    assert.equal(x.a, undefined);           // Non-inverted keys should not be present
+    assert.deepEqual(o, {a: 'A', b: 'B'});     // Original should be non-inverted
   });
 
   it("select:: should select keys from an object", function () {

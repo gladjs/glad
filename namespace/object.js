@@ -41,8 +41,19 @@ module.exports = {
     let len = keys.length;
     for (i; i < len; i +=1) {
      obj[obj[keys[i]]] = keys[i];
-     delete obj[keys[i]]
+     delete obj[keys[i]];
     }
+  },
+
+  createShallowInvertedClone (obj) {
+    let keys = Object.keys(obj);
+    let i = 0;
+    let len = keys.length;
+    let clone = {};
+    for (i; i < len; i +=1) {
+     clone[obj[keys[i]]] = keys[i];
+    }
+    return clone;
   },
 
   select (obj, ...arr) {
