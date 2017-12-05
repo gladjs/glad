@@ -95,8 +95,9 @@ module.exports = {
     }
   },
 
-  format (object, ...keys) {
-    keys = (typeof keys[0] === typeof []) ? keys[0] : keys;
+  format (...args) {
+    let [object, ...keys] = args;
+    keys = (args.length === 2 && typeof keys[0] === typeof []) ? keys[0] : keys;
     let i = 0;
     let len = keys.length;
     let o = {};
