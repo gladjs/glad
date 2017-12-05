@@ -103,9 +103,9 @@ module.exports = {
 
     for (i; i < len; i +=1) {
       if (typeof keys[i] === 'string') {
-        o[keys[i]] = object[keys[i]]
+        lodash.set(o, keys[i], lodash.get(object, keys[i]));
       } else if (keys[i].length === 2) {
-        o[keys[i][0]] = lodash.get(object, keys[i][1]);
+        lodash.set(o, keys[i][0], lodash.get(object, keys[i][1]));
       }
     }
     return o;
@@ -116,9 +116,8 @@ module.exports = {
     keys.forEach(key => {
       let value = obj[key];
       delete obj[key];
-      lodash.setWith(obj, key,value);
+      lodash.setWith(obj, key, value);
     });
-
   }
 
 }

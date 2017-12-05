@@ -132,16 +132,22 @@ describe("Object Methods", function () {
     assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', last_visit: b.last_visit, likes : 'stuff', knows: 'things'});
   });
 
-  it("format:: should format values properly", function () {
+  it("format:: should format values properly (1)", function () {
     let a = { name: 'fred', email: 'me@mail.com', data: { stuff: { a: 'a', b: 'b'}, more : { c: 'value'} } };
     let o = format(a, 'name', 'email', ['stuff', 'data.stuff.a' ], ['value', 'data.more.c']);
     assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', stuff: 'a', value : 'value'});
   });
 
-  it("format:: should format values properly (2)", function () {
+  it("format:: should format values properly (2 - array)", function () {
     let a = { name: 'fred', email: 'me@mail.com', data: { stuff: { a: 'a', b: 'b'}, more : { c: 'value'} } };
     let o = format(a, ['name', 'email', ['stuff', 'data.stuff.a' ], ['value', 'data.more.c']]);
     assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', stuff: 'a', value : 'value'});
+  });
+
+  it("format:: should format values properly (3)", function () {
+    let a = { name: 'fred', email: 'me@mail.com', data: { stuff: { a: 'a', b: 'b'}, more : { c: 'value'} } };
+    let o = format(a, 'name', 'email', 'data.stuff.a', ['value', 'data.more.c']);
+    assert.deepEqual(o, { name: 'fred', email: 'me@mail.com', data: { stuff: { a: 'a'}}, value : 'value'});
   });
 
   it("explode:: should explode an object", function () {
