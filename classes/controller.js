@@ -77,7 +77,9 @@ class Controller {
       let val = object.get(this.body, keys[i]);
 
       if (types.isNotObject(val)) {
-        object.set(ref, keys[i], val);
+        if (val) {
+          object.set(ref, keys[i], val);
+        }
       }
     }
     this.body = this.req.body = ref;
@@ -94,7 +96,10 @@ class Controller {
     let ref = {};
 
     for (i; i < len; i += 1) {
-      object.set(ref, keys[i], object.get(this.body, keys[i]));
+      let val = object.get(this.body, keys[i]);
+      if (val) {
+        object.set(ref, keys[i], val);
+      }
     }
     this.body = this.req.body = ref;
     this.permitted = true;
