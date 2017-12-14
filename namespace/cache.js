@@ -41,7 +41,7 @@
 * ```
 *
 * In effort to make life better on this planet,
-* Including `NODE_ENV=development` will disable caching by default
+* Including `GLAD_ENV=development` will disable caching by default
 *
 * In effort to test caching in development, just set the disabled flag.
 *
@@ -50,6 +50,9 @@
 * Glad.cache.disabled = false; // enables the cache on development
 * ```
 */
+
+const args = require('optimist').argv;
+
 class Cache {
 
   /**
@@ -58,9 +61,9 @@ class Cache {
    * @param {Project} project - The Project Object.
    */
   constructor (server, project) {
-    this.redis = server.redis;
-    this.project = project;
-    this.disabled = project.development;
+    this.redis    = server.redis;
+    this.project  = project;
+    this.disabled = args['disable-cache'] || (!args['enable-cache'] && project.development);
   }
 
   /**
