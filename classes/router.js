@@ -115,7 +115,9 @@ module.exports = class Router {
   bodyParser (config) {
     this.debug('Router:bodyParser');
     let type, options;
-    if (config.bodyParser) {
+    if (config.bodyParser && config.bodyParser.custom) {
+      return config.bodyParser.custom;
+    } else if (config.bodyParser) {
       type = config.bodyParser.parser || this.config.defaultBodyParser && this.config.defaultBodyParser.type;
       options = config.bodyParser || this.config.defaultBodyParser;
     } else {

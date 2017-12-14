@@ -327,6 +327,26 @@ bodyParser : {
 }
 ```
 
+You can also use a custom body parser. 
+
+As an example, maybe you're using multer for file uploads etc...
+
+```
+bodyParser : {
+  custom: multer({ dest: '/tmp/uploads/' }).single('file')
+}
+```
+
+Or not...
+```
+bodyParser : {
+  custom (req, res, next) {
+    ... do stuff
+    next();
+  }
+}
+```
+
 <br><br>
 
 # The Controller
@@ -402,6 +422,12 @@ this.cache({ max: 100, strategy: 'LRU' })
 ##### How To?
 
 What if i'm not using json? `this.cache({ max: 2, strategy: 'LFU', type: 'html' })` you can pass in an additional parameter called type. This can be any type that express understands.
+
+How do I enable caching in development? You can enable caching in development by either using the cache flags `--enable-cache` when starting up your server or console. Or you can do it in an initializer by setting `Glad.cache.disabled = false`
+
+How do I disable caching in non-development environments? You can disable caching in development by either using the cache flags `--disable-cache` when starting up your server or console. Or you can do it in an initializer by setting `Glad.cache.disabled = true` 
+
+How do I progromatically enable or disable Glad caching based on something else, like an environment variable? You can set `Glad.cache.disabled` anywhere you want based off of anything. (The preferred way is to do this in an initializer)
 
 <br/>
 
@@ -570,7 +596,11 @@ module.exports = {
 #### Server Flags
 
 `--port` | `--host` | `--sock` |  `--backlog`
-Using the server flags you can over ride the values in your config.js file.  
+Using the server flags you can over ride the values in your config.js file.
+
+#### Cache Flags
+`--enable-cache` | `disable-cache`
+Using the caching flags you can disable caching for non-development environments or enable cache on development environments
 
 
 ## Classes / Helpers / Tools
