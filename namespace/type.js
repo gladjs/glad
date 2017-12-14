@@ -13,7 +13,7 @@ module.exports = {
   string : typeof '',
 
   isObject (val) {
-    return val.constructor === Object;
+    return (val !== undefined) && val.constructor === Object;
   },
 
   isNotObject (val) {
@@ -21,7 +21,7 @@ module.exports = {
   },
 
   isArray (val) {
-    return val.constructor === Array;
+    return (val !== undefined) && val.constructor === Array;
   },
 
   isNotArray (val) {
