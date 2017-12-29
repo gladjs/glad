@@ -150,7 +150,7 @@ module.exports = class Boot {
       let userSessionModule;
 
       try {
-        userSessionModule = require(path.join(this.project.projectPath, '/session'));
+        userSessionModule = require(join(this.project.projectPath, '/session'));
       } catch (err) {
         userSessionModule = false;
       }
