@@ -31,7 +31,7 @@ module.exports = class Server {
         } else {
           ok(`Listening on ${host || '0.0.0.0'}:${port}`);
         }
-        return this.project.hooks && this.project.hooks.onAfterListen && this.project.hooksonAfterListen();
+        return this.project.hooks && this.project.hooks.onAfterListen && this.project.hooks.onAfterListen();
       });
     }
   }
