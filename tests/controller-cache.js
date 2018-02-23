@@ -887,4 +887,107 @@ describe('ControllerCache Controller Methods should work', function () {
 
 });
 
+describe('ControllerCache Environment Settings', function () {
+
+  class testController extends Controller {
+
+    Get () {
+      return promise( res => {
+        this.cache({ max: 100, strategy: 'LFU' }, cache => {
+          let doc = [{ name: 'doc1' }];
+          this.res.status(200).json(doc);
+          cache(doc).then(res);
+        });
+      });
+    }
+
+    FindOne () {
+      return promise( res => {
+        let doc = { name: 'doc1' };
+        this.cache({ max: 100, strategy: 'LRU' })
+          .miss(cache => {
+            this.res.status(200).json(doc);
+            cache(doc);
+          })
+          .hit(data => this.res.status(200).json(data))
+          .exec().then(res);
+      });
+    }
+
+    Post () {
+      return promise( res => {
+        this.actionCache('Get').reset().then(res);
+      });
+    }
+
+    Put () {
+      return promise( res => {
+        this.actionCache('Get').reset().then(res);
+      })
+    }
+
+    Delete () {
+      return promise( res => {
+        this.res.status(200).json({result: 'Ya, its gone forever'});
+        this.actionCache('Get').reset().then( () => {
+          this.actionCache('FindOne').del('/widgets/12').then(res);
+        });
+      })
+    }
+
+    lookup (val) {
+      return this.cache.get(val);
+    }
+
+    callbackWithResponseType () {
+      let doc = { name: 'doc1' };
+      return promise( res => {
+        let doc = { name: 'doc1' };
+        this.cache({ max: 100, strategy: 'LRU', responseMethod: 'send' }, cache => {
+          res(this.res.send(doc));
+          cache(doc);
+        })
+      });
+    }
+
+    promisable () {
+      let doc = { name: 'doc14' };
+      return promise( res => {
+        let doc = { name: 'doc1' };
+        this.cache({ max: 2, strategy: 'LFU' })
+            .then(() => User.find().limit(15))
+            .then(users => this.res.json(users).cache(users))
+            .catch(err => this.error(err))
+            .finally(res)
+      });
+    }
+  }
+
+  let res = {
+    status () {
+      return { json () { return 'json' } }
+    },
+    json () { return 'json' },
+    send () { return 'send'}
+  }
+
+  it('should cache on a request to a cacheable method (GET)', function () {
+    let myController = new testController({controller: 'myController', action: 'Get', url: '/widgets'}, res, client);
+    return myController.Get()
+      .then(() => myController.cacheStore.get('/widgets'))
+      .then(value => assert.deepEqual(value, [{name: 'doc1'}]))
+  })
+
+  it('should not cache on a request to a cacheable method (GET) when cache is disabled', function () {
+    let myController = new testController({controller: 'myController', action: 'Get', url: '/widgets'}, res, client);
+    Glad.cache.disabled = true;
+    return myController.Get()
+      .then(() => myController.cacheStore.get('/widgets'))
+      .then(value => assert.deepEqual(value, null))
+      .then(x => (Glad.cache.disabled = false));
+  })
+
+
+});
+
 //

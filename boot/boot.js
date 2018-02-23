@@ -79,6 +79,11 @@ module.exports = class Boot {
   gladCache () {
     this[debug]('gladCache');
     Glad.cache = new Cache(this.server, this.project);
+    if (Glad.cache.disabled) {
+      chalk.info("Cache: DISABLED");
+    } else {
+      chalk.ok("Cache: ENABLED");
+    }
     return new Promise.resolve();
   }
 

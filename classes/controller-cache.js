@@ -1,4 +1,4 @@
-const lru            = require('redis-lru');
+const lru            = require('./lru-cache');
 const debugLogger    = require('debug');
 const debugNamespace = Symbol('debugNamespace');
 const debug          = Symbol('debug');
