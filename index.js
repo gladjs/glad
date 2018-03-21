@@ -7,6 +7,7 @@ let Controller  = require('./classes/controller');
 let string      = new (require('./namespace/string'))();
 let cache       = require('./namespace/cache');
 let imports     = require('./namespace/import');
+let intermission = require('./namespace/intermission');
 let log         = require('./namespace/console');
 let type        = require('./namespace/type');
 let token       = require('./namespace/token');
@@ -16,6 +17,7 @@ let Boot        = require('./boot/boot');
 
 module.exports = global.Glad = {
   imports,
+  intermission,
   string,
   type,
   token,

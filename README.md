@@ -599,13 +599,36 @@ module.exports = {
 Using the server flags you can over ride the values in your config.js file.
 
 #### Cache Flags
-`--enable-cache` | `disable-cache`
+`--enable-cache` | `--disable-cache`
 Using the caching flags you can disable caching for non-development environments or enable cache on development environments
 
 
 ## Classes / Helpers / Tools
 
 Glad comes with lots of helpful utilities.
+
+### intermission
+
+> Added in 1.1.4
+
+Glad.intermission is a great way to space out operaations asynchronously. For example, let's say that you want to make an external API call for every model that a query returned, but the API specifies that you should only make 1 request per second to it. You can use Glad.itermission to acomplish this.
+
+```
+  Model.find(...).then(async records => {
+
+    let i = 0;
+    let count = records.length;
+
+    for (i; i < count; i +=1) {
+      await someApi.lookupAndDoStuff(records[i].id);
+      await Glad.intermission(1000);
+    }
+
+  })
+
+```
+
+The above will wait 1 second between each iteration of the for loop.
 
 ### String
 
