@@ -620,7 +620,7 @@ Glad comes with lots of helpful utilities.
 
 > Added in 1.1.4
 
-Glad.intermission is a great way to space out operaations asynchronously. For example, let's say that you want to make an external API call for every model that a query returned, but the API specifies that you should only make 1 request per second to it. You can use Glad.itermission to acomplish this.
+Glad.intermission is a great way to space out operations (asynchronous). For example, let's say that you want to make an external API call for every model that a query returned, but the API specifies that you should only make 1 request per second to it. You can use Glad.itermission to accomplish this.
 
 ```
   Model.find(...).then(async records => {
