@@ -1,12 +1,11 @@
 const fs   = require('fs');
 const path = require('path');
-const NODE_ENV = process.env['NODE_ENV'];
-const GLAD_ENV = process.env['GLAD_ENV'];
-let { get } = require('../namespace/object');
-let { chalk } = require('../namespace/console');
+const GLAD_ENV  = process.env['GLAD_ENV'];
+let { get }     = require('../namespace/object');
+let { chalk }   = require('../namespace/console');
 let { ok, error } = chalk;
-let { exit } = process;
-const debug = require('debug')('glad');
+let { exit }  = process;
+const debug   = require('debug')('glad');
 
 module.exports = class Project {
 
@@ -21,10 +20,9 @@ module.exports = class Project {
     this.controllersPath = path.join(this.projectPath, "controllers");
     this.routesPath      = path.join(this.projectPath, "routes");
     this.viewsPath       = path.join(this.projectPath, "views");
-
-    this.development     = !NODE_ENV || GLAD_ENV === "development" || NODE_ENV === "development";
-    this.staging         = GLAD_ENV === "development" || NODE_ENV === "staging";
-    this.production      = GLAD_ENV === "development" || NODE_ENV === "production";
+    this.development     = GLAD_ENV === "development"
+    this.staging         = GLAD_ENV === "staging";
+    this.production      = GLAD_ENV === "production";
   }
 
   initialize () {
