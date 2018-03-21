@@ -63,7 +63,7 @@ class Cache {
   constructor (server, project) {
     this.redis    = server.redis;
     this.project  = project;
-    this.disabled = args['disable-cache'] || (!args['enable-cache'] && project.development);
+    this.disabled = !!args['disable-cache'] || (project.development && !args['enable-cache']);
   }
 
   /**
