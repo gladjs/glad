@@ -144,6 +144,9 @@ module.exports = class Router {
   * - Register the route and send the request through the body-parser then check the policy then finally the controller.
   */
   route (method, config) {
+    if (!config.controller) {
+      this.noControllerError(config);
+    }
     this.debug(`Router:route ${config.path} => ${config.controller.name}#${config.action}`);
     let { path, controller, action } = config;
     let bodyParser = this.bodyParser(config);
@@ -153,6 +156,22 @@ module.exports = class Router {
       debug('glad')('Router:apply %s => %s#%s with policy %s', path, controller.name, action, config.policy || 'none');
       return new policy(this.policies, this.logging, this.server, config.policy, controller, action).restrict(req, res);
     });
+  }
+
+  noControllerError (config) {
+    chalk.error([
+      '',
+      '-------------------------------------',
+      'Error: NO_CONTROLLER',
+      'You can not have a route wthout a controller to handle requests made to it.',
+      'If you feel that you have encountered this message unexpectedly...',
+      'Please check that the name of the route file matches the exact name of the intended controller file.',
+      'Please review the route config that caused this error below.',
+      '-------------------------------------',
+      JSON.stringify(config), ''
+    ].join('\n'));
+
+    process.exit(1);
   }
 
 }
