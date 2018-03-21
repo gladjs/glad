@@ -1,6 +1,8 @@
 global._Promise = Promise;
 global.Promise  = require('bluebird').Promise;
 
+require('./environment');
+
 const sanitizer = require('sanitizer');
 const sanitize  = require('./namespace/sanitize');
 let Controller  = require('./classes/controller');

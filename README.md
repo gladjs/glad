@@ -576,6 +576,15 @@ module.exports = {
 };
 ```
 
+## Envrironment
+
+#### Set the environment
+
+Create an environment variable on your machine called `GLAD_ENV` OR `NODE_ENV`.
+
+Glad will first check GLAD_ENV. If it does not exist, it will set GLAD_ENV to the value of NODE_ENV. After that, Glad will only take GLAD_ENV into account. Glad will keep GLAD_ENV and NODE_ENV in sync for the process. for example if you set `GLAD_ENV` it will set `NODE_ENV` to `GLAD_ENV` and vice versa. If you have not set either, it sets both to `development` 
+
+
 ## Flags
 
 #### Only
