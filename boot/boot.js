@@ -99,7 +99,7 @@ module.exports = class Boot {
     if (config.orm === 'mongoose' && config.mongodb) {
       return new Promise( resolve => {
         let mongoose = require('mongoose');
-        mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database, { useMongoClient: true });
+        mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database, { useNewUrlParser: true });
         resolve();
       });
     }
