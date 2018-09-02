@@ -9,27 +9,33 @@ module.exports = {
 
   sanitize,
 
-  lowerCase (str = "") {
+  lowerCase (str) {
+    str = str || ""
     return sanitize(str).toLowerCase();
   },
 
-  upperCase (str = "") {
+  upperCase (str) {
+    str = str || ""
     return sanitize(str).toUpperCase();
   },
 
-  titleCase (str = "") {
+  titleCase (str) {
+    str = str || ""
     return string.titelize(sanitize(str));
   },
 
-  clean (str = "") {
+  clean (str) {
+    str = str || ""
     return sanitize(string.cleanSpaces(str.trim()));
   },
 
-  deburr (str = "") {
+  deburr (str) {
+    str = str || ""
     return string.deburr(sanitize(str));
   },
 
-  sentenceCase (str = "") {
+  sentenceCase (str) {
+    str = str || ""
     return string.sentenceCase(sanitize(str));
   }
 
