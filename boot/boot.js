@@ -98,8 +98,11 @@ module.exports = class Boot {
 
     if (config.orm === 'mongoose' && config.mongodb) {
       return new Promise( resolve => {
-        let mongoose = require('mongoose');
-        mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database, { useNewUrlParser: true });
+        let mongoose  = require('mongoose');
+        let url       = 'mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database;
+        if (!mongoose.connection.db) {
+          mongoose.connect(config.mongodb.url || url, { useNewUrlParser: true });
+        }
         resolve();
       });
     }
