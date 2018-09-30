@@ -46,6 +46,14 @@ class ResourceController extends Glad.Controller {
     setTimeout(() => this.res.json({}), 220);
   }
 
+  hasIO () {
+    this.res.json({
+      io: !!this.socketIO,
+      in: !!this.socketIO.in,
+      emit: !!this.socketIO.emit
+    })
+  }
+
   Post () {
     Resource.create(this.body)
       .then(resource => {

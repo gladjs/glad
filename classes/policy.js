@@ -55,7 +55,7 @@ module.exports = class Policy {
 
   runControllerMethod (req, res) {
     this.debug('Policy:runControllerMethod > %s', req.id);
-    let controller = new this.controller(req, res, this.server.redis);
+    let controller = new this.controller(req, res, this.server.redis, this.server.websockets);
     if (controller[this.action]) {
       controller[this.action]();
     } else {

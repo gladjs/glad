@@ -18,6 +18,9 @@ module.exports = {
     path : '/resources/my-page',
     action : 'myHtmlPage'
   },{
+    path : '/resources/has-io',
+    action : 'hasIO'
+  },{
     path : '/resources/:id',
     action : 'FindOne'
   }],

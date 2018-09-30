@@ -1,7 +1,7 @@
-const assert = require('assert');
+const assert     = require('assert');
 const Controller = require('../classes/controller');
-let redis    = require("redis");
-let client = redis.createClient();
+let redis        = require("redis");
+let client       = redis.createClient();
 
 describe('Controller', function () {
 

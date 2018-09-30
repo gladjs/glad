@@ -1,10 +1,10 @@
 const path = require('path');
 const http = require('http');
-const assert = require('assert');
+const assert  = require('assert');
 const unirest = require('unirest');
-const io = require('socket.io-client');
-let redis    = require("redis");
-let client = redis.createClient();
+const io      = require('socket.io-client');
+let redis     = require("redis");
+let client    = redis.createClient();
 
 describe("Running a mock app with Glad features", function () {
 
@@ -206,6 +206,16 @@ describe("Running a mock app with Glad features", function () {
       socket.emit('room1');
       socket.emit('policyError');
       if (socket.connected) socket.disconnect();
+      done();
+    });
+  });
+
+  it ('Should install socketIO on the controller', function (done) {
+    unirest.get('http://localhost:4242/resources/has-io').end(res => {
+      assert.equal(res.body.io, true);
+      assert.equal(res.body.in, true);
+      assert.equal(res.body.emit, true);
+      assert.equal(res.statusCode, 200);
       done();
     });
   });

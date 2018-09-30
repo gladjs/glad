@@ -21,6 +21,7 @@ module.exports = {
     "storage": "redis"
   },
   "mongodb": {
+    "url": 'mongodb://localhost:27017/testdb123456789',
     "host": "localhost",
     "port": 27017,
     "database": "testdb123456789"
