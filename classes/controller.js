@@ -20,6 +20,7 @@ const types   = require('../namespace/type');
  * - params        Alias for `this.req.params`
  * - body          Alias for `this.req.body`
  * - redisClient   Redis Connection
+ * - socketIO      SocketIO
  * - permit        A method that removes non-whitelisted objects. Nested Objects are not allowed without using dot notation to specify the nested keys.
  * - deepPermit    A method that removes non-whitelisted objects. Nested Objects are allowed.
  * - permitted     Boolean, has this action called permit. This may be useful to enforce permitting.
@@ -28,15 +29,16 @@ const types   = require('../namespace/type');
  */
 class Controller {
 
-  constructor (req, res, redisClient) {
+  constructor (req, res, redisClient, socketIO) {
     let { params, body } = req;
     this.req = req;
     this.res = res;
-    this.params = params;
-    this.body = body;
-    this.redisClient = redisClient;
-    this.cacheStore = {};
-    this.viewPath = req.controller.replace('Controller', '').toLowerCase();
+    this.params       = params;
+    this.body         = body;
+    this.redisClient  = redisClient;
+    this.socketIO     = socketIO;
+    this.cacheStore   = {};
+    this.viewPath     = req.controller.replace('Controller', '').toLowerCase();
     this[debugNamespace] = debugLogger('glad');
     this[debug]('Created Controller Instance');
   }
@@ -46,7 +48,7 @@ class Controller {
   }
 
   /**
-   * Whitelist allowable data in a request body. This is a good idea if you mass assigning things.
+   * Whitelist allowable data in a request body. This is a good idea if you are mass assigning things.
    * Ex: Shallow
    * ```javascript
    * this.req.body = { name: 'Fooze', admin: true };
@@ -231,6 +233,7 @@ class Controller {
                 });
               } else {
                 this[debug]('cache:exec:error');
+                this.res.set('X-Glad-Cache-Hit', 'false');
                 reject({
                   err: `
                     Missing method Error.
