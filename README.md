@@ -43,7 +43,7 @@ Glad is a Node JS (MC / MVC) framework built on top of Express that aims to make
 
 
 Out of the box, you get a Model/Controller framework which is great for building REST APIs for either client rendered apps
-such as Ember, Angular, React/Redux etc... or API Service development.
+such as React, Vue, Next, Ember, Angular etc... or API Service development.
 Furthermore, Glad supports MVC and comes bundled with Pug (formerly Jade). Under the hood, view rendering is handled by Express. This gives you the utility of the Express eco-system right at your fingertips.
 
 If you are familiar with Node JS, then getting started with Glad is absolutely painless. If you are new to Node JS, then you should move along quite nicely and Glad will kick start your project in superhero fashion. In fact, you can get a REST API up and running in a matter of minutes after initializing your project.
