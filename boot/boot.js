@@ -250,7 +250,7 @@ module.exports = class Boot {
         warn('If you are using mongoose, please set `orm : "mongoose"` in your config.js file.');
         warn('If you are not using mongoose, please set "exposeModelsGlobally : false" in your config.js file to supress this warning');
       } else {
-        reslove()
+        resolve();
       }
     });
   }
