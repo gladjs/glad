@@ -245,9 +245,12 @@ module.exports = class Boot {
       if (config.exposeModelsGlobally && config.orm === 'mongoose') {
         exposeModelsGlobally(this.router).then(resolve).catch(reject);
       } else if (config.exposeModelsGlobally) {
+        resolve();
         warn('You can only automatically expose model globally when specifying mongoose as your ORM');
         warn('If you are using mongoose, please set `orm : "mongoose"` in your config.js file.');
         warn('If you are not using mongoose, please set "exposeModelsGlobally : false" in your config.js file to supress this warning');
+      } else {
+        reslove()
       }
     });
   }
