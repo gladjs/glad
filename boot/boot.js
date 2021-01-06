@@ -63,6 +63,7 @@ module.exports = class Boot {
     this[debug]('createServer');
     return new Promise( resolve => {
       this.server = new Server(this.project);
+      global.Glad.server = this.server;
       resolve();
     });
   }

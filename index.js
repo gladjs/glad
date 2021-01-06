@@ -32,8 +32,7 @@ module.exports = global.Glad = {
   Controller,
   'Date' : require('./namespace/date'),
   __boot__ (cwd) {
-    let boot = new Boot(cwd)
+    let boot = new Boot(cwd);
     boot.exec();
-    this.server = boot.server;
   }
 };
