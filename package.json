@@ -21,7 +21,7 @@
     "url": "http://github.com/charliemitchell/glad"
   },
   "dependencies": {
-    "async": "^2.1.4",
+    "async": "^3.2.2",
     "bluebird": "^3.4.7",
     "body-parser": "1.12.0",
     "chalk": "^1.1.3",
