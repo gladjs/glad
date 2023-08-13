@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   "port": 4242,
   "host": "0.0.0.0",
   "logHTTP": true,

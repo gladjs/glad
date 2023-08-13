@@ -1,9 +1,19 @@
-module.exports = function (server, app, express) {
-  return new Promise (function (resolve, reject) {
-    let mongoose = require('mongoose');
-    let config = require('./config');
+import mongoose from "mongoose";
+import config from "./config.js";
+
+export default async function (server, app, express) {
+  await connectToMongoDB();
+}
+
+async function connectToMongoDB() {
+  try {
+    const { mongodb } = config;
+    const url = `mongodb://${mongodb.host}:${mongodb.port}/${mongodb.database}`;
     mongoose.Promise = Promise;
-    mongoose.connect('mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database);
-    resolve();
-  });
-};
+    if (!mongoose.connection.db) {
+      await mongoose.connect(mongodb.url || url);
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}

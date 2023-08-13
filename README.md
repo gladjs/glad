@@ -548,9 +548,9 @@ For illustrative purposes, the action method is defined in the example above. Ho
 
 ```javascript
 
-let chats = require('./chats');
+import chats from "./chats"
 
-module.exports = [{
+export default [{
   event: 'hello',
   action: chats.hello,
   policy : 'canSayHello'

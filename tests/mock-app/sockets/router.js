@@ -1,14 +1,18 @@
-const chat = require('./chat');
+import chat from "./chat.js";
 
-module.exports = [{
-  event: 'room1',
-  action : chat.publishChatInRoom1,
-  policy : 'canJoinRoomOne'
-},{
-  event: 'policyError',
-  action : chat.chat,
-  policy : 'canNotCompute'
-},{
-  event: 'chat',
-  action: chat.chat
-}];
+export default [
+  {
+    event: "room1",
+    action: chat.publishChatInRoom1,
+    policy: "canJoinRoomOne",
+  },
+  {
+    event: "policyError",
+    action: chat.chat,
+    policy: "canNotCompute",
+  },
+  {
+    event: "chat",
+    action: chat.chat,
+  },
+];

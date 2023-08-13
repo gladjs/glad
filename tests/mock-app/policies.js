@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 
   onFailure (req, res, custom) {
     res.status(403).send();

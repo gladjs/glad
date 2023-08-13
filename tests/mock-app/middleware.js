@@ -4,7 +4,7 @@
   have sane defaults, and make exceptions when needed.
 */
 
-module.exports = [
+export default [
 
   (app) => {
     app.app.set('view engine', 'pug');

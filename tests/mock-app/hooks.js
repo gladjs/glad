@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 
   onAfterController : function (req, res) {
     console.log('Hook: onAfterController');
@@ -18,5 +18,9 @@ module.exports = {
 
   onAfterDELETE : function (req, res) {
     console.log('Hook: onAfterDELETE');
+  },
+
+  onAfterListen () {
+    console.log('Hook: onAfterListen');
   }
 };

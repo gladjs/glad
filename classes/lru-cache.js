@@ -1,218 +1,247 @@
-function asPromise (fn) {
-  return new Promise((resolve, reject) => {
-    const args = [...arguments].slice(1);
-    args.push((err, res) => {
-      if (err) return reject(err);
-      resolve(res);
-    });
-    fn.apply(null, args);
-  });
-}
+export default class LruCache {
+  options = {}
+  client = null
+  ZSET_KEY
+  namespace
 
-function buildCache (client, opts) {
-  if (!client) {
-    throw Error('redis client is required.');
+  constructor (client, options) {
+    this.validateClient(client)
+    this.validateOptions(options)
+    this.options = this.buildOptions(options)
+    this.ZSET_KEY = `${this.options.namespace}-i`;
+    this.namespace = this.options.namespace;
+    this.client = client;
   }
 
-  if (typeof opts === 'number') {
-    opts = {max: opts};
+  validateClient (client) {
+    if (!client) {
+      throw Error("redis client is required.");
+    }
   }
 
-  opts = Object.assign({
-    namespace: 'LRU-CACHE!',
-    score: () => new Date().getTime(),
-    increment: false
-  }, opts);
-
-  if (!opts.max) {
-    throw Error('max number of items in cache must be specified.');
+  validateOptions (options) {
+    if (!options.max) {
+      throw Error("max number of items in cache must be specified.");
+    }
   }
 
-  const ZSET_KEY = `${opts.namespace}-i`;
+  buildOptions (options) {
+    return { 
+      namespace: ":LRU-CACHE!",
+      score: () => new Date().getTime(),
+      increment: false,
+      ...options
+    }
+  }
 
-  function namedKey (key) {
-    if (!typeof key === 'string') {
-      return Promise.reject(Error('key should be a string.'));
+  namedKey(key) {
+    if (!typeof key === "string") {
+      return Promise.reject(Error("key should be a string."));
     }
 
-    return `${opts.namespace}-k-${key}`;
+    return `${this.namespace}${key}`;
   }
 
   /*
-  * Remove a set of keys from the cache and the index, in a single transaction,
-  * to avoid orphan indexes or cache values.
-  */
-  const safeDelete = (keys) => {
+   * Remove a set of keys from the cache and the index, in a single transaction,
+   * to avoid orphan indexes or cache values.
+   */
+  async safeDelete (keys) {
     if (keys.length) {
-      const multi = client.multi()
-        .zrem(ZSET_KEY, keys)
-        .del(keys);
-
-      return asPromise(multi.exec.bind(multi));
+      await this.client.multi().zRem(this.ZSET_KEY, keys).del(keys).exec();
     }
 
     return Promise.resolve();
+  }
+
+  /*
+   * Gets the value for the given key and updates its timestamp score, only if
+   * already present in the zset. The result is JSON.parsed before returned.
+   */
+  async get (k) {
+    const key = this.namedKey(k);
+    const score = -1 * this.options.score(key);
+    const multi = this.client.multi();
+    const { increment } = this.options;
+
+    multi.get(key)
+
+    if (increment) {
+      multi.zAdd(
+        this.ZSET_KEY, 
+        { score, value: key }, 
+        { CH: true, NX: true }
+      )
+      multi.zIncrBy(this.ZSET_KEY, -1, key) 
+    } else {
+      multi.zAdd(
+        this.ZSET_KEY, 
+        { score, value: key }, 
+        { XX: true, CH: true }
+      )
+    }
+    
+    let result = await multi.exec();
+
+    if (result[0] === null && result[1]) {
+      // value has been expired, remove from zset
+      await this.client.zRem(this.ZSET_KEY, key);
+      return null;
+    }
+    
+    return JSON.parse(result[0]);
   };
 
   /*
-  * Gets the value for the given key and updates its timestamp score, only if
-  * already present in the zset. The result is JSON.parsed before returned.
-  */
-  const get = (key) => {
-    const score = -1 * opts.score(key);
-    key = namedKey(key);
-
-    const multi = client.multi()
-      .get(key);
-
-    if (opts.increment) {
-      multi.zadd(ZSET_KEY, 'XX', 'CH', 'INCR', score, key);
-    } else {
-      multi.zadd(ZSET_KEY, 'XX', 'CH', score, key);
+   * Save (add/update) the new value for the given key, and update its timestamp
+   * score. The value is JSON.stringified before saving.
+   *
+   * If there are more than options.max items in the cache after the operation
+   * then remove each exceeded key from the zset index and its value from the
+   * cache (in a single transaction).
+   */
+  async set (key, value, maxAge = this.options.maxAge) {
+    if (Glad.cache.disabled || (value === null) || (value === undefined)) {
+      return Promise.resolve(false);
     }
 
-    return asPromise(multi.exec.bind(multi))
-      .then((results) => {
-        if (results[0] === null && results[1]) {
-          // value has been expired, remove from zset
-          return asPromise(client.zrem.bind(client), ZSET_KEY, key)
-            .then(() => null);
-        }
-        return JSON.parse(results[0]);
-      });
-  };
+    key = this.namedKey(key);
+    const score = -1 * this.options.score(key);
+    const multi = this.client.multi();
 
-  /*
-  * Save (add/update) the new value for the given key, and update its timestamp
-  * score. The value is JSON.stringified before saving.
-  *
-  * If there are more than opts.max items in the cache after the operation
-  * then remove each exceeded key from the zset index and its value from the
-  * cache (in a single transaction).
-  */
-  const set = (key, value, maxAge) => {
-    if (Glad.cache.disabled) return Promise.resolve();
-    const score = -1 * opts.score(key);
-    key = namedKey(key);
-    maxAge = maxAge || opts.maxAge;
-
-    const multi = client.multi();
+    
     if (maxAge) {
-      multi.set(key, JSON.stringify(value), 'PX', maxAge);
+      multi.set(key, JSON.stringify(value), { PX: maxAge });
     } else {
       multi.set(key, JSON.stringify(value));
     }
 
-    if (opts.increment) {
-      multi.zadd(ZSET_KEY, 'INCR', score, key);
+    if (this.options.increment) {
+      multi.zAdd(this.ZSET_KEY, { score, value: key }, { INCR: true });
     } else {
-      multi.zadd(ZSET_KEY, score, key);
+      multi.zAdd(this.ZSET_KEY, { score, value: key });
     }
 
-    // we get zrange first then safe delete instead of just zremrange,
+    // we get zRange first then safe delete instead of just zremrange,
     // that way we guarantee that zset is always in sync with available data in the cache
     // also, include the last item inside the cache size, because we always want to
     // preserve the one that was just set, even if it has same or less score than other.
-    multi.zrange(ZSET_KEY, opts.max - 1, -1);
+    multi.zRange(this.ZSET_KEY, this.options.max - 1, -1);
+    let results = await multi.exec();
 
-    return asPromise(multi.exec.bind(multi))
-      .then((results) => {
-        if (results[2].length > 1) { // the first one is inside the limit
-          let toDelete = results[2].slice(1);
-          if (toDelete.indexOf(key) !== -1) {
-            toDelete = results[2].slice(0, 1).concat(results[2].slice(2));
-          }
-          return safeDelete(toDelete);
-        }
-      })
-      .then(() => value);
-  };
-
-  /*
-  * Try to get the value of key from the cache. If missing, call function and store
-  * the result.
-  */
-  const getOrSet = (key, fn, maxAge) => get(key)
-    .then((result) => {
-      if (result === null) {
-        return Promise.resolve()
-          .then(fn)
-          .then((result) => set(key, result, maxAge));
+    if (results[2].length > 1) {
+      // the first one is inside the limit
+      let toDelete = results[2].slice(1);
+      if (toDelete.indexOf(key) !== -1) {
+        toDelete = results[2].slice(0, 1).concat(results[2].slice(2));
       }
+
+      await this.safeDelete(toDelete);
+    }
+
+    return value;
+  };
+
+  /*
+   * Try to get the value of key from the cache. If missing, call function and store
+   * the result.
+   */
+  async getOrSet (key, fn, maxAge) {
+    let result = await this.get(key);
+    if (result === null) {
+      let result = await fn();
+      await this.set(key, result, maxAge);
       return result;
-    });
+    }
+    return result;
+  } 
 
   /*
-  * Retrieve the value for key in the cache (if present), without updating the
-  * timestamp score. The result is JSON.parsed before returned.
-  */
-  const peek = (key) => {
-    key = namedKey(key);
+   * Retrieve the value for key in the cache (if present), without updating the
+   * timestamp score. The result is JSON.parsed before returned.
+   * `let result = await cache.peek("yourKey")`
+   */
+  async peek (key) {
+    let result = await this.client.get(this.namedKey(key));
+    // remove value from zset if it's expired
+    if (result === null) {
+      await this.client.zRem(this.ZSET_KEY, key)
+      return Promise.resolve(null)
+    }
 
-    return asPromise(client.get.bind(client), key)
-      .then((result) => {
-        if (result === null) {
-          // value may have been expired, remove from zset
-          return asPromise(client.zrem.bind(client), ZSET_KEY, key)
-            .then(() => null);
-        }
-        return JSON.parse(result);
-      });
-  };
+    return JSON.parse(result);
+  }
 
   /*
-  * Remove the value of key from the cache (and the zset index).
-  */
-  const del = (key) => safeDelete([namedKey(key)]);
+   * Remove the value of key from the cache (and the zset index).
+   */
+  async del (key) {
+    return await this.safeDelete([this.namedKey(key)]);
+  }
 
   /*
-  * Remove all items from cache and the zset index.
-  */
-  const reset = () => asPromise(client.zrange.bind(client), ZSET_KEY, 0, -1)
-    .then(safeDelete);
+   * Remove all items from cache and the zset index.
+   */
+  async reset () {
+    let keys = await this.client.zRange(this.ZSET_KEY, 0, -1);
+    await this.safeDelete(keys);
+  }
 
   /*
-  * Return true if the given key is in the cache
-  */
-  const has = (key) => asPromise(client.get.bind(client), namedKey(key))
-    .then((result) => (!!result));
+   * Return true if the given key is in the cache
+   */
+  async has (key) {
+    let result = await this.client.get(this.namedKey(key));
+    return !!result;
+  }
 
   /*
-  * Return an array of the keys currently in the cache, most reacently accessed
-  * first.
-  */
-  const keys = () => asPromise(client.zrange.bind(client), ZSET_KEY, 0, opts.max - 1)
-    .then((results) => results.map((key) => key.slice(`${opts.namespace}-k-`.length)));
+   * Return an array of the keys currently in the cache, most recently accessed
+   * first.
+   */
+  async keys () {
+    const results = await this.client.zRange(this.ZSET_KEY, 0, -1);
+    return results.map(key => key.slice(`${this.namespace}`.length));
+  }
 
   /*
-  * Return an array of the values currently in the cache, most reacently accessed
-  * first.
-  */
-  const values = () => asPromise(client.zrange.bind(client), ZSET_KEY, 0, opts.max - 1)
-    .then((results) => {
-      const multi = client.multi();
-      results.forEach((key) => multi.get(key));
-      return asPromise(multi.exec.bind(multi));
-    })
-    .then((results) => results.map(JSON.parse));
+   * Return an array of the values currently in the cache, most recently accessed
+   * first.
+   */
+  async values () {
+    const multi = this.client.multi();
+    let results = await this.client.zRange(this.ZSET_KEY, 0, this.options.max - 1);
+
+    results.forEach(key => multi.get(key));
+    let theValues = await multi.exec();
+
+    return theValues.map(JSON.parse)
+  }
+
+  async entries () {
+    const entries = [];
+    const multi = this.client.multi();
+    const theKeys = await this.client.zRange(this.ZSET_KEY, 0, this.options.max - 1);
+    
+    if (theKeys.length  === 0) {
+      return []
+    }
+
+    multi.mGet(theKeys);
+    
+    const [ theValues ] = await multi.exec()
+
+    for (let i = 0; i < theKeys.length; i += 1) {
+      entries.push({ [theKeys[i]]: theValues[i] && JSON.parse(theValues[i]) })
+    }
+    
+    return entries
+  }
 
   /*
-  * Return the amount of items currently in the cache.
-  */
-  const count = () => asPromise(client.zcard.bind(client), ZSET_KEY);
-
-  return {
-    get: get,
-    set: set,
-    getOrSet: getOrSet,
-    peek: peek,
-    del: del,
-    reset: reset,
-    has: has,
-    keys: keys,
-    values: values,
-    count: count
-  };
+   * Return the amount of items currently in the cache.
+   */
+  async count () {
+    return await this.client.zCard(this.ZSET_KEY)
+  }
 }
-
-module.exports = buildCache;

@@ -1,1 +1,1 @@
-module.exports = 'yes';
+export default 'yes';

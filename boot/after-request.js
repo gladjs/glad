@@ -1,21 +1,27 @@
-const { log, timeEnd } = require('./../namespace/console');
-const { color } = new (require('./../namespace/string'))();
+import console from './../namespace/console.js';
+import string from './../namespace/string.js';
+const { log, timeEnd } = console;
+const { color } = new string();
 
-module.exports = class RequestEnd {
+export default class RequestEnd {
 
   constructor (project, onAfterResponse) {
-    this.logging = require(project.configPath).logHTTP;
+    this.project = project
     this.onAfterResponse = onAfterResponse;
+  }
+
+  async initialize () {
+    const { default: config } = await import(this.project.configPath);
+    this.logging = config.logHTTP;
   }
 
   end (req, res, next) {
     req.on("end", () => {
-
       if (this.logging) {
         let code = res.statusCode;
         let _color = (code >= 400 && code < 500) ? "yellow" : (code >= 500) ? "red" : "green";
         log(
-          color(`Response  ${req.id} >> ${res.statusCode} ${res.statusMessage} [${(res._headers && res._headers['content-length'] || 0)} bytes]`, _color)
+          color(`← Response  ${req.id} ${res.statusCode} ${res.statusMessage} [${(res._headers && res._headers['content-length'] || 0)} bytes]`, _color)
         );
         timeEnd(`Timing    ${req.id}`);
       }

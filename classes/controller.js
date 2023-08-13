@@ -1,14 +1,14 @@
-const path = require('path');
-const debugLogger     = require('debug');
-const debugNamespace  = Symbol('debugNamespace');
-const debug           = Symbol('debug');
-const ControllerCache = require('./controller-cache');
-const { chalk: {info}} = require('../namespace/console');
-const object  = require('../namespace/object');
-const types   = require('../namespace/type');
+import { join } from "path";
+import debugLogger from "debug";
+import ControllerCache from "./controller-cache.js";
+import object from "../namespace/object.js";
+import { isNotObject } from "../namespace/type.js";
+const debugNamespace = Symbol("debugNamespace");
+const debug = Symbol("debug");
+const { get, set } = object;
 
 /**
- * Controller Class.
+ * Controller Class.s
  * API:
  * ---
  * ```
@@ -28,22 +28,21 @@ const types   = require('../namespace/type');
  * ```
  */
 class Controller {
-
-  constructor (req, res, redisClient, socketIO) {
+  constructor(req, res, redisClient, socketIO) {
     let { params, body } = req;
     this.req = req;
     this.res = res;
-    this.params       = params;
-    this.body         = body;
-    this.redisClient  = redisClient;
-    this.socketIO     = socketIO;
-    this.cacheStore   = {};
-    this.viewPath     = req.controller.replace('Controller', '').toLowerCase();
-    this[debugNamespace] = debugLogger('glad');
-    this[debug]('Created Controller Instance');
+    this.params = params;
+    this.body = body;
+    this.redisClient = redisClient;
+    this.socketIO = socketIO;
+    this.cacheStore = {};
+    this.viewPath = req.controller.replace("Controller", "").toLowerCase();
+    this[debugNamespace] = debugLogger("glad");
+    this[debug]("Created Controller Instance");
   }
 
-  [debug] (name) {
+  [debug](name) {
     this[debugNamespace]("Controller: %s > %s", name, this.req.id);
   }
 
@@ -69,18 +68,18 @@ class Controller {
    * that shouldnt be allowed. For example: { user : { admin: true } }. Assume that admin was injected by a malicious
    * user trying to gain admin access to the site, and admin access is determined by the admin key.
    */
-  permit (...keys) {
-    this[debug]('permit');
+  permit(...keys) {
+    this[debug]("permit");
     let i = 0;
     let len = keys.length;
     let ref = {};
 
     for (i; i < len; i += 1) {
-      let val = object.get(this.body, keys[i]);
+      let val = get(this.body, keys[i]);
 
-      if (types.isNotObject(val)) {
+      if (isNotObject(val)) {
         if (val) {
-          object.set(ref, keys[i], val);
+          set(ref, keys[i], val);
         }
       }
     }
@@ -92,15 +91,15 @@ class Controller {
    * This method is similar to permit, only it also permits subdocuments.
    */
   deepPermit(...keys) {
-    this[debug]('deepPermit');
+    this[debug]("deepPermit");
     let i = 0;
     let len = keys.length;
     let ref = {};
 
     for (i; i < len; i += 1) {
-      let val = object.get(this.body, keys[i]);
+      let val = get(this.body, keys[i]);
       if (val) {
-        object.set(ref, keys[i], val);
+        set(ref, keys[i], val);
       }
     }
     this.body = this.req.body = ref;
@@ -111,141 +110,74 @@ class Controller {
    * The default error response for the controller
    * @param {object} error - The error that occured. Providing `status` on the error object will set the HTTP Status code on the respone.
    */
-  error (err = {}) {
-    this[debug]('error');
-    this.res.status(err.status || 500).json(err)
+  error(err = {}) {
+    this[debug]("error");
+    this.res.status(err.status || 500).json(err);
   }
 
   /**
-  * ##  The controller level cache.
-  * ---
-  * All options are optional.
-  *
-  * [ *Number* ]  `max`: Maximum amount of items the cache can hold. This option is required; if no
-  * other option is needed, it can be passed directly as the second parameter when creating
-  * the cache.
-  *
-  * [ *String* ]  `namespace`: Prefix appended to all keys saved in Redis, to avoid clashes with other applications
-  * and to allow multiple instances of the cache. Given a controller called "Products" and an action called "find", the default
-  * namespace is `Products#find`. By setting this value to 'server007' it would be `Products#find-server007`.
-  *
-  * [ *Number* ]  `maxAge`: Maximum amount of milliseconds the key will be kept in the cache; after that getting/peeking will
-  * resolve to `null`. Note that the value will be removed from Redis after `maxAge`, but the key will
-  * be kept in the cache until next time it's accessed (i.e. it will be included in `count`, `keys`, etc., although not in `has`.).
-  *
-  * [ *Function* ] `score`: function to customize the score used to order the elements in the cache. Defaults to `() => new Date().getTime()`
-  *
-  * [ *Boolean* ] `increment`: if `true`, on each access the result of the `score` function is added to the previous one,
-  *  rather than replacing it.
-  *
-  * [ *String* ] `strategy`: If 'LRU', the scoring function will be set to LRU Cache.
-  * If 'LFU', the scoring function will be set to 'LFU'. The default strategy is 'LFU'
-  *
-  * [ *String* ] `type`: Overrides the default response type (json). Set this to any mime type express supports. [Docs Here](https://expressjs.com/en/api.html#res.type)
-  *
-  * ---
-  *
-  * #### Call back method
-  * ```javascript
-  * this.cache({ max: 100, strategy: 'LFU' }, cache => {
-  *   Products.find({category: 'widgets'}).exec( (err, widgets) => {
-  *     this.res.status(200).json(widgets);
-  *     cache(doc);
-  *   });
-  * });
-  * ```
-  * Using the call back method using LFU cache. In the event of a cache miss, The callback function recieves a cache method
-  * that you can call to set the cache for identical requests that may happen in the future. Once this is set, the call back
-  * will be skipped and the default response method will be called automatically.
-  *
-  * #### Chained Methods offer more control.
-  * ```javascript
-  * this.cache({ max: 100, strategy: 'LRU' })
-  *   .miss(cache => {
-  *     Products.find({category: 'widgets'}).exec( (err, widgets) => {
-  *       this.res.status(200).json(widgets);
-  *       cache(widgets);
-  *     });
-  *   })
-  *   .hit(data => this.res.status(200).json(data))
-  *   .exec();
-  * ```
-  * In the above example, we don't pass in a callback. Instead we use chaining to express
-  * how we want to handle the control flow.
-  *
-  * - `miss` registers a callback to allow you to store the item in the cache
-  *
-  * - `hit` registers a callback to allow you to handle your own response
-  *
-  * - `exec` runs the function and is a required function call.
-  *
-  * @param {object} options - (optional) Caching options. See options in the description.
-  * @param {function} fn - (optional) the method to call for a cache miss.
-  */
-  cache (options, fn) {
-    this[debug]('cache');
-    var cache = new ControllerCache(this.redisClient, this.req.controller, this.req.action, options);
-    var hitFn, missFn;
+   * ##  The controller level cache.
+   * ---
+   * All options are optional.
+   *
+   * [ *Number* ]  `max`: Maximum amount of items the cache can hold. This option is required.
+   *
+   * [ *String* ]  `namespace`: Prefix appended to all keys saved in Redis, to avoid clashes with other applications
+   * and to allow multiple instances of the cache. Given a controller called "Products" and an action called "find", the default
+   * namespace is `Products#find`. By setting this value to 'server007' it would be `Products#find-server007`.
+   *
+   * [ *Number* ]  `maxAge`: Maximum amount of milliseconds the key will be kept in the cache; after that getting/peeking will
+   * resolve to `null`. Note that the value will be removed from Redis after `maxAge`, but the key will
+   * be kept in the cache until next time any cache is accessed (i.e. it will be included in `count`, `keys`, etc., although not in `has`.).
+   *
+   * [ *Function* ] `score`: function to customize the score used to order the elements in the cache. Defaults to `() => new Date().getTime()`
+   *
+   * [ *Boolean* ] `increment`: if `true`, on each access the result of the `score` function is added to the previous one,
+   *  rather than replacing it.
+   *
+   * [ *String* ] `strategy`: If 'LRU', the scoring function will be set to LRU Cache.
+   * If 'LFU', the scoring function will be set to 'LFU'. The default strategy is 'LFU'
+   *
+   * [ *String* ] `uuid`: This is an additional suffix that can be added to the key in order to support caching items that belong to an entity, like a user for example/
+   * If you do not set this, then a cache hit will occur when the following are satisfied, [Controller, Method, request.url, namespace]
+   *
+   *
+   * #### Example.
+   * ```javascript
+   * const data = await this.cache({ max: 100, strategy: 'LRU' }, async cache => await getTheData())
+   * ```
+   *
+   * @param {object} options - Caching options. See options in the description.
+   * @param {function} fn - An async function that will be used to get the data that we'll use to populate the cache.
+   */
 
-    this.res.cache = function (content) {
-      return cache.cache.set(this.req.url, content);
-    }
+  async cache(options, missFn) {
+    try {
+      this[debug]("cache");
+      var cache = new ControllerCache(
+        this.redisClient,
+        this.req.controller,
+        this.req.action,
+        options
+      );
 
-    this.cacheStore = cache.cache;
+      this.cacheStore = cache.cache;
+      const result = await cache.cachedVersion(this.req);
 
-    if (fn) {
-      return cache.cachedVersion(this.req).then(result => {
-        if (result) {
-          this[debug]('cache:callback:hit');
-          this.res.set('X-GLAD-CACHE-HIT', 'true');
-          return this.res.type(options.type || 'json').send(result);
-        } else {
-          this[debug]('cache:callback:miss');
-          return fn.call(this, (content) => {
-            return cache.cache.set(this.req.url, content);
-          });
-        }
-      });
-    } else {
-      return {
-        hit   (func) { hitFn = func; return this;},
-        miss  (func) { missFn = func; return this;},
-        exec  : () => {
-          return new Promise( (resolve, reject) => {
-            cache.cachedVersion(this.req).then(result => {
+      if (result) {
+        this[debug]("cache:hit");
+        this.res.set("X-Glad-Cache-Hit", "true");
+        return result;
+      }
 
-              if (result) {
-                this[debug]('cache:exec:hit');
-                this.res.set('X-Glad-Cache-Hit', 'true');
-              }
-
-              if (result && hitFn) {
-                hitFn(result);
-                resolve(result);
-              } else if (result) {
-                this.res.type(options.type || 'json').send(result);
-                resolve(result);
-              } else if (missFn) {
-                this[debug]('cache:exec:miss');
-                missFn(data => {
-                  cache.cache.set(this.req.url, data);
-                  resolve(data);
-                });
-              } else {
-                this[debug]('cache:exec:error');
-                this.res.set('X-Glad-Cache-Hit', 'false');
-                reject({
-                  err: `
-                    Missing method Error.
-                    Please provide the '.miss' portion of your cache chain.
-                    this.cache({..opts}).miss((cache) => { ..do stuff >> res.json(stuff) >> cache(stuff) })
-                  `
-                });
-              }
-            });
-          });
-        }
-      };
+      this[debug]("cache:miss");
+      const missFnResult = await missFn();
+      this[debug]("cache:set");
+      await cache.cache.set(this.req.url, missFnResult);
+      this[debug]("cache:set complete");
+      return missFnResult;
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -291,10 +223,17 @@ class Controller {
    * });
    * ```
    */
-  actionCache (action) {
-    this[debug]('actionCache');
-    let _cache    = new ControllerCache(this.redisClient, this.req.controller, action);
+  actionCache({ action, namespace, uuid }) {
+    this[debug]("actionCache");
+
+    let _cache = new ControllerCache(
+      this.redisClient,
+      this.req.controller,
+      action,
+      { namespace, uuid }
+    );
     let { cache } = _cache;
+
     return cache;
   }
 
@@ -314,12 +253,11 @@ class Controller {
    * this.res.render('path/to/view', data);
    * ```
    */
-  render (...args) {
-    this[debug]('render');
-    args[0] = path.join(this.viewPath, args[0]);
+  render(...args) {
+    this[debug]("render");
+    args[0] = join(this.viewPath, args[0]);
     this.res.render.apply(this.res, args);
   }
-
 }
 
-module.exports = Controller;
+export default Controller;

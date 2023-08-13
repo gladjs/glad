@@ -4,7 +4,7 @@
 * Ex: `user` gets exposed as `User`
 **/
 
-module.exports = function (router) {
+export default function ExposeModelsGlobally(router) {
   let models = Object.keys(router.models);
   models.forEach(key => {
     let chars = key.split('');

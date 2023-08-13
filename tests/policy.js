@@ -1,66 +1,83 @@
-const Policy      = require('../classes/policy');
-const Controller  = require('../classes/controller');
-const assert      = require('assert');
-const redis       = require("redis");
-const client      = redis.createClient();
-const policies    = require('./mocks/policies');
-const server      = { redis: client };
-const chai        = require("chai");
-const sinon       = require("sinon");
-const sinonChai   = require("sinon-chai");
-const expect      = chai.expect;
+import Policy from "../classes/policy.js";
+import Controller from "../classes/controller.js";
+import assert from "assert";
+import { createClient } from "redis";
+import policies from "./mocks/policies.js";
+import chai from "chai";
+import sinon from "sinon";
+import sinonChai from "sinon-chai";
+import res from "./mocks/response-object.js"
 chai.use(sinonChai);
 
-Promise = require('bluebird').Promise;
+const client = createClient();
+const server = { redis: client };
 
 // policies, logging, server, policy, controller, action
 
 describe("Policies", function () {
-
-  let res = {
-    status () {
-      return { json (msg) { return msg } }
-    },
-    json () { return 'json' },
-    send () { return 'send'}
-  }
-
   class testController extends Controller {
-    myMethod () {
+    myMethod() {
       return "OK";
     }
   }
 
-  let spy = sinon.spy(testController.prototype, "myMethod");
-  let policySpy = sinon.spy(policies, 'onFailure');
-
-  it('should call the controller method when the policy is accepted', function () {
-    spy.reset();
-    new Policy(policies, false, server, 'correctPolicy', testController, 'myMethod').restrict({}, res);
-    assert(spy.calledOnce);
+  this.beforeAll(function () {
+    this.myMethodSpy = sinon.spy(testController.prototype, "myMethod");
+    this.policySpy = sinon.spy(policies, "onFailure");
   });
 
-  it('should deny the request when the policy does not exist', function () {
-    spy.reset();
-    policySpy.reset();
-    let pol = new Policy(policies, false, server, 'notARealPolicy', testController, 'myMethod').restrict({}, res);
-    assert(spy.notCalled);
-    assert(policySpy.calledOnce);
+  this.afterEach(function () {
+    this.myMethodSpy.resetHistory();
+    this.policySpy.resetHistory()
   });
 
-  it('should not blow up when an action does not exist on the controller, but it should warn', function () {
-    spy.reset();
-    policySpy.reset();
-    let pol = new Policy(policies, false, server, 'correctPolicy', testController, 'methodMissing').restrict({}, res);
-    assert(spy.notCalled);
-    assert(policySpy.calledOnce);
+  it("should call the controller method when the policy is accepted", function () {
+    new Policy(
+      policies,
+      false,
+      server,
+      "correctPolicy",
+      testController,
+      "myMethod"
+    ).restrict({}, res);
+    assert(this.myMethodSpy.calledOnce);
   });
 
-  it('should call the controller method when no policy is given', function () {
-    spy.reset();
-    new Policy(policies, true, server, undefined, testController, 'myMethod').restrict({}, res);
-    assert(spy.calledOnce);
+  it("should deny the request when the policy does not exist", function () {
+    let pol = new Policy(
+      policies,
+      false,
+      server,
+      "notARealPolicy",
+      testController,
+      "myMethod"
+    ).restrict({}, res);
+    assert(this.myMethodSpy.notCalled);
+    assert(this.policySpy.calledOnce);
   });
 
+  it("should not blow up when an action does not exist on the controller, but it should warn", function () {
+    let pol = new Policy(
+      policies,
+      false,
+      server,
+      "correctPolicy",
+      testController,
+      "methodMissing"
+    ).restrict({}, res);
+    assert(this.myMethodSpy.notCalled);
+    assert(this.policySpy.calledOnce);
+  });
 
+  it("should call the controller method when no policy is given", function () {
+    new Policy(
+      policies,
+      true,
+      server,
+      undefined,
+      testController,
+      "myMethod"
+    ).restrict({}, res);
+    assert(this.myMethodSpy.calledOnce);
+  });
 });

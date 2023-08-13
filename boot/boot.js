@@ -1,229 +1,213 @@
-let { log, chalk } = require('../namespace/console');
-let { error,warn } = chalk;
-let Server         = require('../classes/server');
-let Router         = require('../classes/router');
-let Initializer    = require('./initialize');
-let redis          = require("redis");
-let session        = require('express-session');
-let sessionStore   = require('express-sessions');
-let { extend }     = require('../namespace/object');
-let Project        = require('../classes/project');
-let { join }       = require('path');
-let RequestEnd     = require('./after-request');
-let Cache          = require('../namespace/cache');
-let exposeModelsGlobally  = require('./expose-models-globally');
-let RequestIdentifier     = require('./request-identifier');
-const _debug          = require('debug');
-const debug           = Symbol('debug');
-const debugNamespace  = Symbol('debugNamespace');
-Promise.promisifyAll(redis.RedisClient.prototype);
-Promise.promisifyAll(redis.Multi.prototype);
+import { chalk } from "../namespace/console.js";
+import dynamicImport from "../lib/dynamic-import.js"
+let { error, warn } = chalk;
+import Server from "../classes/server.js";
+import Router from "../classes/router.js";
+import Initializer from "./initialize.js";
+import redis from "redis";
+import session from "express-session";
+import sessionStore from "express-sessions";
+import { extend } from "../namespace/object.js";
+import Project from "../classes/project.js";
+import { join } from "path";
+import RequestEnd from "./after-request.js";
+import Cache from "../namespace/cache.js";
+import exposeModelsGlobally from "./expose-models-globally.js";
+import RequestIdentifier from "./request-identifier.js";
+import _debug from "debug";
 
-module.exports = class Boot {
+const { createClient } = redis;
 
-  constructor (cwd = false) {
-    this[debugNamespace] = _debug('glad');
-    this[debug]('Boot:constructor');
+const debug = Symbol("debug");
+const debugNamespace = Symbol("debugNamespace");
+
+export default class Boot {
+  constructor(cwd = false) {
+    this[debugNamespace] = _debug("glad");
+    this[debug]("constructor");
     this.project = new Project(cwd);
-    this.project.initialize();
   }
 
-  [debug] (msg) {
-    this[debugNamespace]('Boot: %s', msg);
+  [debug](msg) {
+    this[debugNamespace]("Boot: %s", msg);
   }
 
-  exec () {
-
-    Promise.each([
-      this.createServer,
-      this.connectToRedis,
-      this.gladCache,
-      this.session,
-      this.attachSessionToWebsockets,
-      this.createRouter,
-      this.init,
-      this.connectToMongo,
-      this.id,
-      this.disablePoweredBy,
-      this.setViewEngine,
-      this.getMiddleware,
-      this.getHooks,
-      this.after,
-      this.middleware,
-      this.initializeWaterline,
-      this.drawSocketIo,
-      this.draw,
-      this.exposeModels
-    ], exec => exec.call(this))
-      .then(() => this.server.listen())
-      .catch(err => log(err));
+  async exec() {
+    try {
+      await this.project.initialize();
+      this.createServer();
+      await this.connectToRedis();
+      this.gladCache();
+      await this.session();
+      await this.attachSessionToWebsockets();
+      await this.createRouter();
+      await this.init();
+      this.id();
+      await this.disablePoweredBy();
+      await this.setViewEngine();
+      await this.getMiddleware();
+      await this.getHooks();
+      await this.after();
+      await this.middleware();
+      await this.initializeWaterline();
+      await this.drawSocketIo();
+      await this.draw();
+      await this.exposeModels();
+      await this.server.listen();
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 
-  createServer () {
-    this[debug]('createServer');
-    return new Promise( resolve => {
-      this.server = new Server(this.project);
-      global.Glad.server = this.server;
-      resolve();
-    });
+  createServer() {
+    this[debug]("createServer");
+    this.server = new Server(this.project);
+    global.Glad.server = this.server;
   }
 
-  connectToRedis () {
-    this[debug]('connectToRedis');
-    return new Promise( resolve => {
-      let { config } = this.project;
-      this.server.redis = redis.createClient(config.redis);
-      resolve();
-    });
+  async connectToRedis() {
+    this[debug]("connectToRedis");
+    this.server.redis = createClient(this.project.config.redis);
+    await this.server.redis.connect();
   }
 
-  gladCache () {
-    this[debug]('gladCache');
+  gladCache() {
+    this[debug]("gladCache");
     Glad.cache = new Cache(this.server, this.project);
     if (Glad.cache.disabled) {
       chalk.info("Cache: DISABLED");
     } else {
       chalk.ok("Cache: ENABLED");
     }
-    return new Promise.resolve();
   }
 
-  init () {
-    this[debug]('init');
+  init() {
+    this[debug]("init");
     return new Initializer(this.project, this.server).initialize();
   }
 
-  connectToMongo () {
-    this[debug]('connectToMongo');
-    let { config } = this.project;
-
-    if (config.orm === 'mongoose' && config.mongodb) {
-      return new Promise( resolve => {
-        let mongoose  = require('mongoose');
-        let url       = 'mongodb://' + config.mongodb.host + ':' + config.mongodb.port + '/' + config.mongodb.database;
-        if (!mongoose.connection.db) {
-          mongoose.connect(config.mongodb.url || url, { useNewUrlParser: true });
-        }
-        resolve();
-      });
-    }
+  async id() {
+    this[debug]("id");
+    const identifier = new RequestIdentifier(this.project);
+    await identifier.initialize();
+    this.server.app.use(identifier.id.bind(identifier));
   }
 
-  id () {
-    this[debug]('id');
-    return new Promise( resolve => {
-      let identifier = new RequestIdentifier(this.project);
-      this.server.app.use(identifier.id.bind(identifier));
-      resolve();
-    });
-  }
-
-  disablePoweredBy () {
-    this[debug]('disablePoweredBy');
-    this.server.app.disable('x-powered-by');
+  disablePoweredBy() {
+    this[debug]("disablePoweredBy");
+    this.server.app.disable("x-powered-by");
     return Promise.resolve();
   }
 
-  getMiddleware () {
-    this[debug]('getMiddleware');
-    return new Promise( resolve => {
-      this.project.middleware = require(join(this.project.projectPath, 'middleware'));
-      resolve();
-    });
+  async getMiddleware() {
+    this[debug]("getMiddleware");
+    this.project.middleware = await dynamicImport(
+      join(this.project.projectPath, "middleware.js")
+    );
   }
 
-  getHooks () {
-    this[debug]('getHooks');
-    this.project.hooks = require(join(this.project.projectPath, 'hooks'));
-    return Promise.resolve();
+  async getHooks() {
+    this[debug]("getHooks");
+    this.project.hooks = await dynamicImport(
+      join(this.project.projectPath, "hooks.js")
+    );
   }
 
   // THIS NEEDS TO BE MOVED IN THE ROUTER CHAIN vvvvvvvvvvv
-  after () {
-    this[debug]('after');
-    return new Promise( resolve => {
-      let after = new RequestEnd(this.project);
-      this.server.app.use(after.end.bind(after));
-      resolve();
-    });
+  async after() {
+    this[debug]("after");
+    let after = new RequestEnd(this.project);
+    await after.initialize();
+    this.server.app.use(after.end.bind(after));
   }
 
   /**
    * If there is a session key in the config then implement sessions based on the config.
    * Otherwise it is assumed that a roll your own implementation or no sessions will be used.
    */
-  session () {
-    this[debug]('session');
-    return new Promise( resolve => {
-      let { config } = this.project;
-      let userSessionModule;
+  async session() {
+    this[debug]("session");
+    const { config } = this.project;
+    var userSessionModule;
 
-      try {
-        userSessionModule = require(join(this.project.projectPath, '/session'));
-      } catch (err) {
-        userSessionModule = false;
-      }
+    try {
+      userSessionModule = await dynamicImport(
+        join(this.project.projectPath, "/session.js")
+      );
+    } catch (err) {
+      userSessionModule = false;
+    }
 
-      if (config.session) {
-
-        let options = extend({
+    if (config.session) {
+      let options = extend(
+        {
           instance: this.server.redis,
-          storage: 'redis'
-        }, config.session);
+          storage: "redis",
+        },
+        config.session
+      );
 
-        this._sessions = session({
-          secret: config.cookie.secret,
-          resave: config.cookie.resave || false,
-          store: new sessionStore(options),
-          saveUninitialized: true,
-          cookie : config.cookie,
-          name : config.cookie.name
-        });
+      this._sessions = session({
+        secret: config.cookie.secret || 'keyboard cat',
+        resave: config.cookie.resave || false,
+        saveUninitialized: true,
+        cookie: config.cookie || { secure: true }
+      })
 
-        this.server.app.use( (req, res, next) => {
-          let debugMiddleware = _debug('glad');
-          debugMiddleware('Session:middleware');
-          if (userSessionModule) {
-            debugMiddleware('Session:middleware: using session.js');
-            userSessionModule(req, res, next).then(result => {
-              if (result) {
-                debugMiddleware('Session:middleware: session.js > Use Glad Session');
-                this._sessions(req, res, next);
-              } else {
-                debugMiddleware('middleware: session.js > Not using Session');
-              }
-            });
-          } else {
-            debugMiddleware('middleware: Using Glad Session');
-            this._sessions(req, res, next);
-          }
-        });
-      }
-      resolve();
-    });
+      this.server.app.use((req, res, next) => {
+        let debugMiddleware = _debug("glad");
+        debugMiddleware("Session:middleware");
+        if (userSessionModule) {
+          debugMiddleware("Session:middleware: using session.js");
+          userSessionModule(req, res, next).then((result) => {
+            if (result) {
+              debugMiddleware(
+                "Session:middleware: session.js > Use Glad Session"
+              );
+              this._sessions(req, res, next);
+            } else {
+              debugMiddleware("Session:middleware: session.js > Not using Session");
+            }
+          });
+        } else {
+          debugMiddleware("Session:middleware: Using Glad Session");
+          this._sessions(req, res, next);
+        }
+      });
+    }
   }
 
   /**
    * If there is a session key in the config then attach the session to websocket events.
    * Otherwise look for setupWebsockets in the config, if it exists, pass the setup over to there and waith for that promise to resolve.
    */
-  attachSessionToWebsockets () {
-    this[debug]('attachSessionToWebsockets');
-    return new Promise( resolve => {
+  async attachSessionToWebsockets() {
+    this[debug]("attachSessionToWebsockets");
+    return new Promise((resolve) => {
       let { config } = this.project;
       if (config.session) {
+        this[debug]("attachSessionToWebsockets attaching");
         this.server.websockets.use((socket, next) => {
           this._sessions(socket.request, socket.request.res, next);
         });
-        this.server.websockets.on('connection', conn => {
+        this.server.websockets.on("connection", (conn) => {
+          _debug("glad")("⚡ websocket ⚡ connected");
           if (conn.request.session) {
+            _debug("glad")("⚡ websocket ⚡ attaching session");
             conn.request.session.socketId = conn.id;
           } else {
-            error("ERROR: You are trying to attach a websocket id to a session, but there is NO session");
+            error(
+              "ERROR: You are trying to attach a websocket id to a session, but there is NO session"
+            );
           }
         });
         resolve();
-      } else if (config.setupWebsockets && typeof config.setupWebsockets === 'function' ) {
+      } else if (
+        config.setupWebsockets &&
+        typeof config.setupWebsockets === "function"
+      ) {
+        this[debug]("attachSessionToWebsockets using config.setupWebsockets")
         config.setupWebsockets(this.server.websockets).then(resolve);
       } else {
         resolve();
@@ -231,105 +215,133 @@ module.exports = class Boot {
     });
   }
 
-  createRouter () {
-    this[debug]('createRouter');
-    return new Promise( (resolve, reject) => {
-      this.router = new Router(this.project, this.server);
-      this.router.buildRoutes().then(resolve).catch(reject);
-    });
+  async createRouter() {
+    this[debug]("createRouter");
+    this.router = new Router(this.project, this.server);
+    await this.router.buildRoutes();
   }
 
-  exposeModels () {
-    this[debug]('exposeModels');
+  exposeModels() {
+    this[debug]("exposeModels");
     let { config } = this.project;
-    return new Promise( (resolve, reject) => {
-      if (config.exposeModelsGlobally && config.orm === 'mongoose') {
+    return new Promise((resolve, reject) => {
+      if (config.exposeModelsGlobally && config.orm === "mongoose") {
         exposeModelsGlobally(this.router).then(resolve).catch(reject);
       } else if (config.exposeModelsGlobally) {
         resolve();
-        warn('You can only automatically expose model globally when specifying mongoose as your ORM');
-        warn('If you are using mongoose, please set `orm : "mongoose"` in your config.js file.');
-        warn('If you are not using mongoose, please set "exposeModelsGlobally : false" in your config.js file to supress this warning');
+        warn(
+          "You can only automatically expose model globally when specifying mongoose as your ORM"
+        );
+        warn(
+          'If you are using mongoose, please set `orm : "mongoose"` in your config.js file.'
+        );
+        warn(
+          'If you are not using mongoose, please set "exposeModelsGlobally : false" in your config.js file to supress this warning'
+        );
       } else {
         resolve();
       }
     });
   }
 
-  middleware () {
-    this[debug]('middleware');
-    return new Promise( (resolve, reject) => {
-      Promise.each(this.project.middleware, exec => exec(this.server))
-        .then(resolve)
-        .catch(reject);
-    });
+  async middleware() {
+    this[debug]("middleware");
+    for (let i = 0; i < this.project.middleware.length; i +=1) {
+      await this.project.middleware[i](this.server)
+    }
   }
 
   /**
    * If Waterline is being used, then the developer needs to initialize it.
    * This is wrapped in a try/catch because we don't expect that this method will be there (especially if the project is not using glad-cli).
    */
-  initializeWaterline () {
-    this[debug]('initializeWaterline');
-    return new Promise( (resolve, reject) => {
-      if (this.project.orm === 'waterline') {
-        this[debug]('initializeWaterline: Using Waterline');
+  async initializeWaterline() {
+    this[debug]("initializeWaterline");
+    return new Promise(async (resolve, reject) => {
+      if (this.project.orm === "waterline") {
+        this[debug]("initializeWaterline: Using Waterline");
         try {
-          let hooks = require(`${this.project.projectPath}/hooks`);
+          let hooks = await dynamicImport(`${this.project.projectPath}/hooks`);
           hooks.initializeWaterline(this.router).then(resolve).catch(reject);
         } catch (err) {
           error(err);
-          reject("It seems like you have initialized this project to use waterline, but you are missing the onAfterModels hook in your hooks file.");
+          reject(
+            "It seems like you have initialized this project to use waterline, but you are missing the onAfterModels hook in your hooks file."
+          );
         }
       } else {
-        this[debug]('initializeWaterline: Not using Waterline');
+        this[debug]("initializeWaterline: Not using Waterline");
         // no need to initialize for waterline.
         resolve();
       }
     });
   }
 
-  drawSocketIo () {
-    this[debug]('drawSocketIo');
-    return new Promise( resolve => {
-      try {
-        let socketRouter  = require(`${this.project.projectPath}/sockets/router`);
-        let socketPolicies = require(`${this.project.projectPath}/sockets/policies`);
-        this.server.websockets.on('connection', conn => {
-          let connectionDebug = _debug('glad');
-          connectionDebug('WebSocket:connection');
-          socketRouter.forEach(route => {
-            connectionDebug('WebSocket:connection: Drawing Route for %s', route.event);
-            conn.on(route.event, data => {
-              let routeDebug = _debug('glad');
-              routeDebug('WebSocket:Route: Received %s', route.event);
-              if (route.policy && socketPolicies[route.policy]) {
-                routeDebug('WebSocket:Route: Applying policy for %s', route.event);
-                socketPolicies[route.policy](conn, () => {
-                  routeDebug('WebSocket:Route: Policy accepted for %s', route.event);
-                  route.action.call(this.server.websockets, data, conn);
-                });
-              } else if (route.policy) {
-                error(`WS: The route for the ${route.event} event requires a policy, but the socket policy does not exist. Please ensure that it is defined in ${this.project.projectPath}/sockets/policies.js`);
-              } else {
-                routeDebug('WebSocket:Route: No policy for %s > Calling action', route.event);
+  async drawSocketIo() {
+    this[debug]("drawSocketIo");
+    const { config } = this.project;
+    try {
+      const socketRouter = await dynamicImport(
+        `${this.project.projectPath}/sockets/router.js`
+      );
+      const socketPolicies = await dynamicImport(
+        `${this.project.projectPath}/sockets/policies.js`
+      );
+      this.server.websockets.on("connection", (conn) => {
+        const connectionDebug = _debug("glad");
+        socketRouter.forEach((route) => {
+          connectionDebug(
+            "⚡ websocket ⚡ drawing route for %s",
+            route.event
+          );
+          conn.prependAnyOutgoing(event => {
+            _debug("glad")("⚡ websocket ⚡ emitting %s", route.event)
+            if (config.logHTTP) {
+              chalk.ok(`← ⚡ ${conn.id} ${event}`)
+            }
+          });
+          conn.on(route.event, (data) => {
+            const routeDebug = _debug("glad");
+            routeDebug("`⚡ websocket ⚡ Received %s", route.event);
+            if (config.logHTTP) {
+              chalk.info(`→ ⚡ ${conn.id} ${route.event}`)
+            }
+            if (route.policy && socketPolicies[route.policy]) {
+              routeDebug(
+                "`⚡ websocket ⚡ applying policy for %s",
+                route.event
+              );
+              socketPolicies[route.policy](conn, () => {
+                routeDebug(
+                  "`⚡ websocket ⚡ policy accepted for %s",
+                  route.event
+                );
                 route.action.call(this.server.websockets, data, conn);
-              }
-            });
+              });
+            } else if (route.policy) {
+              error(
+                `WS: The route for the ${route.event} event requires a policy, but the socket policy does not exist. Please ensure that it is defined in ${this.project.projectPath}/sockets/policies.js`
+              );
+            } else {
+              routeDebug(
+                "`⚡ websocket ⚡ no policy for %s > Calling action",
+                route.event
+              );
+              route.action.call(this.server.websockets, data, conn);
+            }
           });
         });
-        resolve();
-      } catch (err) {
-        this[debug]('Not using websockets');
-        log("Not using websockets");
-        resolve();
-      }
-    });
+      });
+    } catch (err) {
+      this[debug]("not using websockets");
+      error("not using websockets");
+      throw(err)
+    }
   }
 
-  draw () {
-    this[debug]('draw');
-    return new Promise( resolve => {
+  draw() {
+    this[debug]("draw");
+    return new Promise((resolve) => {
       let key;
       for (key in this.router.routes) {
         if (this.router.routes.hasOwnProperty(key)) {
@@ -337,7 +349,7 @@ module.exports = class Boot {
           let method;
           for (method in target) {
             if (target.hasOwnProperty(method)) {
-              target[method].forEach(cfg => {
+              target[method].forEach((cfg) => {
                 cfg.controller = this.router.controllers[key];
                 this.router.route(method, cfg);
               });
@@ -349,11 +361,10 @@ module.exports = class Boot {
     });
   }
 
-  setViewEngine () {
-    this[debug]('setViewEngine');
+  setViewEngine() {
+    this[debug]("setViewEngine");
     let { config } = this.project;
-    this.server.app.set('view engine', config.defaultViewEngine || 'pug');
+    this.server.app.set("view engine", config.defaultViewEngine || "pug");
     return Promise.resolve();
   }
-
 }

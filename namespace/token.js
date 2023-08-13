@@ -1,8 +1,7 @@
 /**
  * ## Glad Tokenizer
  *```
- * var tokenizer = require('glad').token;
- *
+ * const {tokenizer} = Glad
  * tokenizer.generate(6); // <-- 6 character token
  * tokenizer.generate(256); // <-- 256 character token
  *
@@ -17,37 +16,37 @@
  *```
  */
 
-const RADIX = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ-0987654321_abcdefghijklmnopqrstuvwxyz';
+const RADIX =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ-0987654321_abcdefghijklmnopqrstuvwxyz";
 const BASE_TIME = 1456931443188;
 
 class Tokenizer {
-
-  constructor (salt) {
-    let validSalt = (salt && (typeof salt === 'string') && salt.length > 0);
+  constructor(salt) {
+    let validSalt = salt && typeof salt === "string" && salt.length > 0;
     this.radix = (validSalt && salt) || RADIX;
     this.baseTime = 1456931443188;
   }
 
-  generate (size) {
-    let key = '';
+  generate(size) {
+    let key = "";
     let len = this.radix.length;
-    while ( size -- ) {
+    while (size--) {
       let rnd = Tokenizer.rand(len);
       key += this.radix[rnd];
     }
     return key;
   }
 
-  static rand (max = 10) {
-    return Math.floor(Math.random() * max)
+  static rand(max = 10) {
+    return Math.floor(Math.random() * max);
   }
 
-  static toInt (encoded, base, chars) {
-    let output  = 0;
-    let length  = (encoded = encoded.split('')).length;
-    let pos     = 0;
+  static toInt(encoded, base, chars) {
+    let output = 0;
+    let length = (encoded = encoded.split("")).length;
+    let pos = 0;
 
-    if (base > (chars = (chars || RADIX)).length || base < 2) {
+    if (base > (chars = chars || RADIX).length || base < 2) {
       return NaN;
     }
 
@@ -58,12 +57,11 @@ class Tokenizer {
     return output;
   }
 
-  static toBase (number, base, chars) {
-
+  static toBase(number, base, chars) {
     var output = "";
 
-    if (base > (chars = (chars || RADIX).split('')).length || base < 2) {
-      return '';
+    if (base > (chars = (chars || RADIX).split("")).length || base < 2) {
+      return "";
     }
 
     while (number) {
@@ -73,39 +71,45 @@ class Tokenizer {
 
     return output;
   }
-
 }
 
-module.exports = {
+export function timeCoded(base) {
+  base = base || RADIX;
+  return (
+    Tokenizer.toBase(new Date().getTime() - BASE_TIME, base.length, base) +
+    ":" +
+    generate(4)
+  );
+}
 
+export function timeDecoded(str, base) {
+  base = base || RADIX;
+  str = str.split(":")[0];
+  return new Date(Tokenizer.toInt(str, base.length, base) + BASE_TIME);
+}
+
+export const generate = (() => {
+  let defaultTokenizer = new Tokenizer();
+  return defaultTokenizer.generate.bind(defaultTokenizer);
+})();
+
+export const radixes = {
+  62: RADIX.replace(/-|_/g, ""),
+  64: RADIX,
+  74: RADIX + "!@#$%^&*()+=",
+  84: RADIX + "!@#$%^&*()+=<>[]{}|:;~",
+}
+
+export function create(salt = RADIX) {
+  let newTokenizer = new Tokenizer(salt);
+  return newTokenizer;
+}
+
+export default {
   Tokenizer,
-
-  timeCoded (base) {
-    base = base || RADIX;
-    return  Tokenizer.toBase(new Date().getTime() - BASE_TIME, base.length, base ) + ':' + module.exports.generate(4);
-  },
-
-  timeDecoded (str, base) {
-    base = base || RADIX;
-    str = str.split(':')[0];
-    return new Date(Tokenizer.toInt(str, base.length, base ) + BASE_TIME);
-  },
-
-  generate : (() => {
-    let defaultTokenizer = new Tokenizer();
-    return defaultTokenizer.generate.bind(defaultTokenizer);
-  })(),
-
-  radixes : {
-    '62' : RADIX.replace(/-|_/g, ''),
-    '64' : RADIX,
-    '74' : RADIX + '!@#$%^&*()+=',
-    '84' : RADIX + '!@#$%^&*()+=<>[]{}|:;~'
-  },
-
-  create (salt = RADIX) {
-    let newTokenizer = new Tokenizer(salt);
-    return newTokenizer;
-  }
-
+  timeCoded,
+  timeDecoded,
+  generate,
+  radixes,
+  create,
 };

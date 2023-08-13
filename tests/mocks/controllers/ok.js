@@ -1,4 +1,4 @@
-let Controller = require('../../../classes/controller');
+import Controller from '../../../classes/controller.js';
 
 class myController extends Controller {
 
@@ -19,4 +19,4 @@ class myController extends Controller {
   }
 }
 
-module.exports = myController;
+export default myController;

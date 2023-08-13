@@ -1,52 +1,55 @@
-const Policy      = require('../classes/policy');
-const Controller  = require('../classes/controller');
-const Router      = require('../classes/router');
-const assert      = require('assert');
-const redis       = require("redis");
-const client      = redis.createClient();
-const policies    = require('./mocks/policies');
-const server      = { redis: client, app : { get () {} } };
-const chai        = require("chai");
-const sinon       = require("sinon");
-const sinonChai   = require("sinon-chai");
-const expect      = chai.expect;
-const path        = require('path');
-const base        = __dirname;
-const project     = {
-  routesPath : path.join(base,'../tests/mocks/routes'),
-  modelsPath : path.join(base,'../tests/mocks/models'),
-  controllersPath : path.join(base,'../tests/mocks/controllers'),
-  viewsPath : path.join(base, '../tests/mocks/views'),
-  configPath : path.join(base,'../tests/mocks/config'),
-  projectPath : path.join(base,'../tests/mocks')
+import Router from "../classes/router.js";
+import assert, { ok, deepEqual } from "assert";
+import { createClient } from "redis";
+import chai from "chai";
+import sinon from "sinon";
+import sinonChai from "sinon-chai";
+import path, { join } from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const base = path.dirname(__filename);
+
+const client = createClient();
+const server = { redis: client, app: { get() {} } };
+const project = {
+  routesPath: join(base, "../tests/mocks/routes"),
+  modelsPath: join(base, "../tests/mocks/models"),
+  controllersPath: join(base, "../tests/mocks/controllers"),
+  viewsPath: join(base, "../tests/mocks/views"),
+  configPath: join(base, "../tests/mocks/config.js"),
+  projectPath: join(base, "../tests/mocks"),
 };
 
 chai.use(sinonChai);
 
-Promise = require('bluebird').Promise;
-
-describe('router', function () {
-
-  it ('should build the routes', function () {
+describe("Router", function () {
+  before(async () => {
+    await client.connect()
+  })
+  after(async () => {
+    await client.disconnect()
+  })
+  it("should build the routes", async function () {
     let router = new Router(project, server);
-    router.buildRoutes();
-    assert.ok(router);
-    assert.deepEqual(router.controllers.ok.name, 'myController');
-    assert.deepEqual(router.models, {ok: true});
-    assert.deepEqual(router.routes, { ok: require(path.join(project.routesPath, 'ok'))});
+    await router.buildRoutes();
+    ok(router);
+    deepEqual(router.controllers.ok.name, "myController");
+    deepEqual(router.models, { ok: true });
+    deepEqual(router.routes.ok.GET, [{path: "/test", action: "Get"}]);
   });
 
-  it ('should draw a route', function () {
+  it("should draw a route", async function () {
     let router = new Router(project, server);
-    let spy = sinon.spy(server.app, 'get');
+    let spy = sinon.spy(server.app, "get");
 
-    router.buildRoutes();
+    await router.buildRoutes();
 
-    for (key in router.routes) {
+    for (let key in router.routes) {
       let target = router.routes[key];
       let method;
       for (method in target) {
-        target[method].forEach(cfg => {
+        target[method].forEach((cfg) => {
           cfg.controller = router.controllers[key];
           router.route(method, cfg);
         });
@@ -54,9 +57,7 @@ describe('router', function () {
     }
 
     assert(spy.calledOnce);
-
   });
 
   // Route mapping is already tested using Express' coverage.
-
 });

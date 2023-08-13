@@ -1,27 +1,24 @@
-const { join }  = require('path');
-const { chalk } = require('./../namespace/console');
+import { join } from 'path';
+import { chalk } from './../namespace/console.js';
 const { error, verbose } = chalk;
 
-module.exports = class Initializer {
+export default class Initializer {
 
   constructor (project, server) {
     this.project = project;
     this.server = server;
   }
 
-  initialize () {
-    return new Promise( (resolve, reject) => {
-      try {
-        let initialize = require(join(this.project.projectPath, 'init'));
-        verbose("Glad: Running Your Initialize Hook", 'yellow');
-        initialize(this.server.server, this.server.app, this.server.express).then(resolve).catch(reject);
-      } catch (err) {
-        error('An error occured while initializing the app.');
-        error('Be sure that your init.js file exists, and that you resolve the promise');
-        error('See Error below...');
-        error(err);
-        reject(err);
-      }
-    });
+  async initialize () {
+    try {
+      let { default: initialize } = await import(join(this.project.projectPath, 'init.js'));
+      verbose("Glad: Running Your Initialize Hook", 'yellow');
+      await initialize(this.server.server, this.server.app, this.server.express)
+    } catch (err) {
+      error('An error occured while initializing the app.');
+      error('Be sure that your init.js file exists, and that you resolve the promise');
+      error('See Error below...');
+      error(err);
+    }
   }
 }

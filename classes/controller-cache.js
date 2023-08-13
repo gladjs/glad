@@ -1,56 +1,70 @@
-const lru            = require('./lru-cache');
-const debugLogger    = require('debug');
-const debugNamespace = Symbol('debugNamespace');
-const debug          = Symbol('debug');
+import LruCache from "./lru-cache.js";
+import debugLogger from "debug";
+const debugNamespace = Symbol("debugNamespace");
+const debug = Symbol("debug");
 
-module.exports = class ControllerCache {
-
-  constructor (redisClient, controller = 'UNDEFINED-CONTROLLER!', action = 'UNDEFINED-ACTION', options = {}) {
+export default class ControllerCache {
+  constructor(
+    redisClient,
+    controller = "UNDEFINED-CONTROLLER!",
+    action = "UNDEFINED-ACTION",
+    options = {}
+  ) {
     this.client = redisClient;
     this.controller = controller;
-    this.namespace = `${controller}#${action}`;
+    this.namespace = `${controller}:${action}`;
     this.setOptions(options);
-    this.cache = lru(this.client, this.options);
-    this[debugNamespace] = debugLogger('glad');
-    this[debug]('Created ControllerCache Instance');
+    this.cache = new LruCache(this.client, this.options);
+    this[debugNamespace] = debugLogger("glad");
+    this[debug]("Created ControllerCache Instance");
   }
 
-  [debug] (name) {
+  [debug](name) {
     this[debugNamespace]("ControllerCache %s", name);
   }
 
-  setOptions (opts, rebuild) {
-    let { strategy, namespace } = opts;
-    if (strategy === 'LRU') {
+  setOptions(opts, rebuild) {
+    let { strategy } = opts;
+    if (strategy === "LRU") {
       opts.score = () => new Date().getTime();
       opts.increment = false;
-    } else if (strategy === 'LFU') {
+    } else if (strategy === "LFU") {
       opts.score = () => 1;
       opts.increment = true;
     }
 
-    opts.namespace = this.namespace;
-
-    if (namespace && opts.namespace !== namespace) {
-      opts.namespace += `-${namespace}`;
-      this.namespace = opts.namespace;
+    if (opts.namespace && (opts.namespace !== this.namespace)) {
+      opts.namespace = `${this.namespace}:${opts.namespace}:`;
+      if (opts.uuid) {
+        opts.namespace = `${opts.namespace}${opts.uuid}:`
+      }
+    } else if (opts.namespace && opts.uuid) {
+      opts.namespace = `${opts.namespace}:${opts.uuid}:`
+    } else if (opts.uuid) {
+      opts.namespace = `${this.namespace}:${opts.uuid}:`
+    } else {
+      opts.namespace = this.namespace
     }
 
-    this.options = Object.assign({
-      score: () => new Date().getTime(),
-      increment: false,
-      max : 3
-    }, opts);
+    this.namespace = opts.namespace;
+
+    this.options = Object.assign(
+      {
+        score: () => new Date().getTime(),
+        increment: false,
+        max: 3,
+      },
+      opts
+    );
 
     if (rebuild) {
-      this.cache = lru(this.client, this.options);
+      this.cache = new LruCache(this.client, this.options);
     }
-
   }
 
-  cachedVersion (req) {
-    this[debug]('Cached Version');
-    return this.cache.get(req.url).then(json => json || false);
+  async cachedVersion(req) {
+    this[debug]("Cached Version");
+    const json = await this.cache.get(req.url);
+    return json || false;
   }
-
 }

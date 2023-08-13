@@ -1,27 +1,26 @@
-require('./environment');
+import "./environment.js";
+import sanitizer from "sanitizer";
+import sanitize from "./namespace/sanitize.js";
+import Controller from "./classes/controller.js";
+import cache from "./namespace/cache.js";
+import imports from "./namespace/import.js";
+import intermission from "./namespace/intermission.js";
+import log from "./namespace/console.js";
+import typePkg from "./namespace/type.js";
+import token from "./namespace/token.js";
+import number from "./namespace/number.js";
+import object from "./namespace/object.js";
+import Boot from "./boot/boot.js";
+import stringPkg from "./namespace/string.js";
+import date from "./namespace/date.js";
 
-global._Promise = Promise;
-global.Promise  = require('bluebird').Promise;
+let string = new stringPkg();
 
-const sanitizer = require('sanitizer');
-const sanitize  = require('./namespace/sanitize');
-let Controller  = require('./classes/controller');
-let string      = new (require('./namespace/string'))();
-let cache       = require('./namespace/cache');
-let imports     = require('./namespace/import');
-let intermission = require('./namespace/intermission');
-let log         = require('./namespace/console');
-let type        = require('./namespace/type');
-let token       = require('./namespace/token');
-let number      = require('./namespace/number');
-let object      = require('./namespace/object');
-let Boot        = require('./boot/boot');
-
-module.exports = global.Glad = {
+export default global.Glad = {
   imports,
   intermission,
   string,
-  type,
+  type: typePkg,
   token,
   number,
   object,
@@ -30,9 +29,9 @@ module.exports = global.Glad = {
   log,
   cache,
   Controller,
-  'Date' : require('./namespace/date'),
-  __boot__ (cwd) {
+  Date: date,
+  async __boot__(cwd) {
     let boot = new Boot(cwd);
-    boot.exec();
-  }
+    await boot.exec();
+  },
 };

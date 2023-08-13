@@ -5,7 +5,7 @@
  * @version 0.0.1
  */
 
-let mongoose = require('mongoose');
+import mongoose from "mongoose";
 let { Schema } = mongoose;
 
 let resource = new Schema({
@@ -15,4 +15,4 @@ let resource = new Schema({
 });
 
 mongoose.model('resource', resource);
-module.exports = mongoose.model('resource');
+export default mongoose.model('resource');

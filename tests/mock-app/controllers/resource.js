@@ -4,82 +4,96 @@
  * @module controllers/resources
  * @version 0.0.1
  */
-const { imports } = Glad;
-const Resource = require('../models/resource');
+import Resource from "../models/resource.js";
 
 class ResourceController extends Glad.Controller {
-
-  Get () {
-    this.cache({ max: 3, strategy: 'LFU' }, cache => {
-      Resource.find().limit(15).exec().then(resources => {
-        this.res.json(resources) && cache(resources);
-      }).catch(err => this.error(err))
+  async Get() {
+    const data = await this.cache({ max: 3, strategy: "LFU" }, async () => {
+      try {
+        const data = await Resource.find().limit(15).exec();
+        return data;
+      } catch (err) {
+        console.error(err);
+      }
     });
+    this.res.json(data);
   }
 
-  FindOne () {
-    this.cache({ max: 3, strategy: 'LFU' }).miss(cache => {
-      Resource.findOne({ _id: this.params.id}).exec().then(resource => {
-        cache(resource);
-        setTimeout(() => this.res.json(resource), 100);
-      }).catch(err => this.error(err));
-    }).hit(data => {
-      setTimeout(() => this.res.json(data), 100)
-    }).exec()
-  }
-
-  myHtmlPage () {
-    this.cache({ max: 300, strategy: 'LFU', type: 'html' }, cache => {
-      this.render('my-page', { name : 'Charlie', up_to: 'testing' }, (err, data) => {
-        if (!err && data) {
-          this.res.send(data);
-          cache(data);
-        } else {
-          this.res.status(500).end();
+  async FindOne() {
+    const data = await this.cache(
+      { max: 3, strategy: "LFU", uuid: this.params.id },
+      async () => {
+        try {
+          const data = await Resource.findOne({ _id: this.params.id })
+            .limit(15)
+            .exec();
+          return data;
+        } catch (err) {
+          throw err;
         }
-      });
+      }
+    );
+    this.res.json(data);
+  }
+
+  async myHtmlPage() {
+    let html = await this.cache(
+      { max: 300, strategy: "LFU", type: "html" },
+      async () => await this.#compileMyHtmlPage()
+    );
+
+    this.res.send(html);
+  }
+
+  #compileMyHtmlPage() {
+    return new Promise((resolve, reject) => {
+      this.render(
+        "my-page",
+        { name: "Charlie", up_to: "testing" },
+        (err, data) => {
+          if (err) return reject(err);
+
+          resolve(data);
+        }
+      );
     });
   }
 
-  blastChecker () {
+  blastChecker() {
     // simulate a long running database lookup.
     setTimeout(() => this.res.json({}), 220);
   }
 
-  hasIO () {
+  hasIO() {
     this.res.json({
       io: !!this.socketIO,
       in: !!this.socketIO.in,
-      emit: !!this.socketIO.emit
-    })
+      emit: !!this.socketIO.emit,
+    });
   }
 
-  Post () {
-    Resource.create(this.body)
-      .then(resource => {
-        this.actionCache('Get').reset().then(() => {
-          this.res.status(201).json(resource);
-        });
-      })
-      .catch(err => this.error(err));
+  async Post() {
+    let resource = await Resource.create(this.body);
+
+    await this.actionCache({action: "Get"}).reset()
+    this.res.status(201).json(resource);
   }
 
-  Put () {
+  Put() {
     Resource.update(this.params.id, this.body)
-      .then(resources => this.res.json(resource))
-      .catch(err => this.error(err));
+      .then((resources) => this.res.json(resources))
+      .catch((err) => this.error(err));
   }
 
-  destroy () {
-    Resource.remove(this.params.id)
-      .then(removals => this.res.status(204).send())
-      .catch(err => this.error(err));
+  destroy() {
+    Resource.deleteOne(this.params.id)
+      .then((removals) => this.res.status(204).send())
+      .catch((err) => this.error(err));
   }
 
-  destroyAll () {
-    Resource.remove({}).then(removals => this.res.status(204).send());
+  destroyAll() {
+    Resource.deleteMany({}).then((removals) => this.res.status(204).send());
   }
-
 }
 
-module.exports = ResourceController;
+export default ResourceController;

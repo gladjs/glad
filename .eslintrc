@@ -1,8 +1,6 @@
 {
     "env": {
       "es6": true,
-      "amd": true,
-      "commonjs": true,
       "node": true
     },
     "ecmaFeatures": {

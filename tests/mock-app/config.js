@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   "port": 4242,
   "host": "0.0.0.0",
   "logHTTP": true,
@@ -21,7 +21,7 @@ module.exports = {
     "storage": "redis"
   },
   "mongodb": {
-    "url": 'mongodb://localhost:27017/testdb123456789',
+    "url": 'mongodb://127.0.0.1:27017/testdb123456789',
     "host": "localhost",
     "port": 27017,
     "database": "testdb123456789"
