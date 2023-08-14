@@ -67,18 +67,22 @@ The recommended way to install Glad is using Glad CLI. However, it is not necess
 
 Glad CLI has many options for initializing a project. The CLI supports several different databases including MongoDB, Postgresql, MySQL. In addition, Glad CLI supports either Mongoose, Waterline, or usage without an ORM/ODM. You can read the documentation for Glad-CLI [here.](https://github.com/gladjs/glad-cli/blob/master/README.md)
 
+**Blank Slate Example**
+- Create a new folder for your project
+- `cd /path/to/new-folder`
+- `glad init`
+
+**Example using Sequelize**
+- Create a new folder for your project
+- `cd /path/to/new-folder`
+- `glad init --sequelize`
+
 **Example using MongoDB & Mongoose**
 - Create a new folder for your project
 - `cd /path/to/new-folder`
-- `glad init --odm=mongoose`
-
-**Example using Postgresql & Waterline**
-- Create a new folder for your project
-- `cd /path/to/new-folder`
-- `glad init --odm=waterline --adapter=sails-postgresql`
+- `glad init --mongoose`
 
 #### Creating a project without Glad-CLI
-
 - Create a new folder for your project
 - `cd /path/to/new-folder`
 - `npm install glad --save`

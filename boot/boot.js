@@ -49,11 +49,13 @@ export default class Boot {
       await this.getHooks();
       await this.after();
       await this.middleware();
-      await this.initializeWaterline();
       await this.drawSocketIo();
       await this.draw();
       await this.exposeModels();
       await this.server.listen();
+      if (this.project.hooks && this.project.hooks.onAfterBoot) {
+        await this.project.hooks.onAfterBoot();
+      }
     } catch (err) {
       console.error(err);
       throw err;
@@ -225,19 +227,8 @@ export default class Boot {
     this[debug]("exposeModels");
     let { config } = this.project;
     return new Promise((resolve, reject) => {
-      if (config.exposeModelsGlobally && config.orm === "mongoose") {
+      if (config.exposeModelsGlobally) {
         exposeModelsGlobally(this.router).then(resolve).catch(reject);
-      } else if (config.exposeModelsGlobally) {
-        resolve();
-        warn(
-          "You can only automatically expose model globally when specifying mongoose as your ORM"
-        );
-        warn(
-          'If you are using mongoose, please set `orm : "mongoose"` in your config.js file.'
-        );
-        warn(
-          'If you are not using mongoose, please set "exposeModelsGlobally : false" in your config.js file to supress this warning'
-        );
       } else {
         resolve();
       }
@@ -249,32 +240,6 @@ export default class Boot {
     for (let i = 0; i < this.project.middleware.length; i +=1) {
       await this.project.middleware[i](this.server)
     }
-  }
-
-  /**
-   * If Waterline is being used, then the developer needs to initialize it.
-   * This is wrapped in a try/catch because we don't expect that this method will be there (especially if the project is not using glad-cli).
-   */
-  async initializeWaterline() {
-    this[debug]("initializeWaterline");
-    return new Promise(async (resolve, reject) => {
-      if (this.project.orm === "waterline") {
-        this[debug]("initializeWaterline: Using Waterline");
-        try {
-          let hooks = await dynamicImport(`${this.project.projectPath}/hooks`);
-          hooks.initializeWaterline(this.router).then(resolve).catch(reject);
-        } catch (err) {
-          error(err);
-          reject(
-            "It seems like you have initialized this project to use waterline, but you are missing the onAfterModels hook in your hooks file."
-          );
-        }
-      } else {
-        this[debug]("initializeWaterline: Not using Waterline");
-        // no need to initialize for waterline.
-        resolve();
-      }
-    });
   }
 
   async drawSocketIo() {
