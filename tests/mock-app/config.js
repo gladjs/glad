@@ -8,23 +8,24 @@ export default {
     "type": "json"
   },
   "exposeModelsGlobally": true,
-  "redis": {
+  "redis_env": {
     "host": "localhost",
     "port": 6379
   },
-  "cookie": {
+  "cookie_env": {
     "name": "glad.sid",
     "secret": "change-this-tosomethingthatlooksuglyandmakeitprettylongandrandomtoo",
-    "maxAge": 86400000
+    "options": {
+      "maxAge": 86400000
+    }
   },
   "session": {
     "storage": "redis"
   },
   "mongodb": {
-    "url": 'mongodb://127.0.0.1:27017/testdb123456789',
-    "host": "localhost",
-    "port": 27017,
-    "database": "testdb123456789"
+    "host": "MONGODB_HOST",
+    "port": "MONGODB_PORT",
+    "database": "MONGODB_DATABASE"
   },
   "defaultViewEngine" : "pug",
   "orm": "mongoose"

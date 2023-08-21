@@ -1,5 +1,5 @@
 import { chalk } from "../namespace/console.js";
-import dynamicImport from "../lib/dynamic-import.js"
+import dynamicImport from "../lib/dynamic-import.js";
 let { error, warn } = chalk;
 import Server from "../classes/server.js";
 import Router from "../classes/router.js";
@@ -70,7 +70,10 @@ export default class Boot {
 
   async connectToRedis() {
     this[debug]("connectToRedis");
-    this.server.redis = createClient(this.project.config.redis);
+    const host = process.env[config.redis_env.host];
+    const port = process.env[config.redis_env.port];
+
+    this.server.redis = createClient({ host, port });
     await this.server.redis.connect();
   }
 
@@ -131,6 +134,7 @@ export default class Boot {
   async session() {
     this[debug]("session");
     const { config } = this.project;
+    const { cookie_env } = config;
     var userSessionModule;
 
     try {
@@ -151,11 +155,15 @@ export default class Boot {
       );
 
       this._sessions = session({
-        secret: config.cookie.secret || 'keyboard cat',
-        resave: config.cookie.resave || false,
-        saveUninitialized: true,
-        cookie: config.cookie || { secure: true }
-      })
+        secret: process.env[cookie_env.secret] || "keyboard cat",
+        resave: cookie_env.options.resave || false,
+        saveUninitialized: cookie_env.options.saveUninitialized,
+        cookie: {
+          name: process.env[cookie_env.name] || "glad.sid",
+          secret: process.env[cookie_env.secret] || "keyboard cat",
+          secure: cookie_env.options.secure || true,
+        },
+      });
 
       this.server.app.use((req, res, next) => {
         let debugMiddleware = _debug("glad");
@@ -169,7 +177,9 @@ export default class Boot {
               );
               this._sessions(req, res, next);
             } else {
-              debugMiddleware("Session:middleware: session.js > Not using Session");
+              debugMiddleware(
+                "Session:middleware: session.js > Not using Session"
+              );
             }
           });
         } else {
@@ -209,7 +219,7 @@ export default class Boot {
         config.setupWebsockets &&
         typeof config.setupWebsockets === "function"
       ) {
-        this[debug]("attachSessionToWebsockets using config.setupWebsockets")
+        this[debug]("attachSessionToWebsockets using config.setupWebsockets");
         config.setupWebsockets(this.server.websockets).then(resolve);
       } else {
         resolve();
@@ -237,8 +247,8 @@ export default class Boot {
 
   async middleware() {
     this[debug]("middleware");
-    for (let i = 0; i < this.project.middleware.length; i +=1) {
-      await this.project.middleware[i](this.server)
+    for (let i = 0; i < this.project.middleware.length; i += 1) {
+      await this.project.middleware[i](this.server);
     }
   }
 
@@ -255,21 +265,18 @@ export default class Boot {
       this.server.websockets.on("connection", (conn) => {
         const connectionDebug = _debug("glad");
         socketRouter.forEach((route) => {
-          connectionDebug(
-            "⚡ websocket ⚡ drawing route for %s",
-            route.event
-          );
-          conn.prependAnyOutgoing(event => {
-            _debug("glad")("⚡ websocket ⚡ emitting %s", route.event)
+          connectionDebug("⚡ websocket ⚡ drawing route for %s", route.event);
+          conn.prependAnyOutgoing((event) => {
+            _debug("glad")("⚡ websocket ⚡ emitting %s", route.event);
             if (config.logHTTP) {
-              chalk.ok(`← ⚡ ${conn.id} ${event}`)
+              chalk.ok(`← ⚡ ${conn.id} ${event}`);
             }
           });
           conn.on(route.event, (data) => {
             const routeDebug = _debug("glad");
             routeDebug("`⚡ websocket ⚡ Received %s", route.event);
             if (config.logHTTP) {
-              chalk.info(`→ ⚡ ${conn.id} ${route.event}`)
+              chalk.info(`→ ⚡ ${conn.id} ${route.event}`);
             }
             if (route.policy && socketPolicies[route.policy]) {
               routeDebug(
@@ -300,7 +307,7 @@ export default class Boot {
     } catch (err) {
       this[debug]("not using websockets");
       error("not using websockets");
-      throw(err)
+      throw err;
     }
   }
 
