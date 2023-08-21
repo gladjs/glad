@@ -6,7 +6,9 @@ import debugPkg from "debug";
 import * as url from "url";
 import dynamicImport from "../lib/dynamic-import.js";
 import { createRequire } from "module";
+import fs from "fs"
 const require = createRequire(import.meta.url);
+
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const GLAD_ENV = process.env["GLAD_ENV"];
@@ -20,10 +22,19 @@ export default class Project {
     this.cliPath = join(__dirname, "../..");
     this.projectPath = projectPath || process.cwd();
     this.packagePath = join(this.projectPath, "package.json");
-    this.configPath = process.env.GLAD_PROJECT_CONFIG_PATH = join(
+    const configMjsPath = join(
       this.projectPath,
-      "config.js"
-    );
+      "config.mjs"
+    )
+    if (fs.statSync(configMjsPath)) {
+      this.configPath = process.env.GLAD_PROJECT_CONFIG_PATH = configMjsPath;
+    } else {
+      this.configPath = process.env.GLAD_PROJECT_CONFIG_PATH = join(
+        this.projectPath,
+        "config.js"
+      );
+    }
+    
     this.hooksPath = join(this.projectPath, "hooks.js");
     this.modelsPath = join(this.projectPath, "models");
     this.controllersPath = join(this.projectPath, "controllers");
