@@ -26,7 +26,7 @@ export default class Project {
       this.projectPath,
       "config.mjs"
     )
-    if (fs.statSync(configMjsPath)) {
+    if (fs.existsSync(configMjsPath)) {
       this.configPath = process.env.GLAD_PROJECT_CONFIG_PATH = configMjsPath;
     } else {
       this.configPath = process.env.GLAD_PROJECT_CONFIG_PATH = join(
