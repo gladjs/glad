@@ -70,6 +70,7 @@ export default class Boot {
 
   async connectToRedis() {
     this[debug]("connectToRedis");
+    const { config } = this.project
     const host = process.env[config.redis_env.host];
     const port = process.env[config.redis_env.port];
 
