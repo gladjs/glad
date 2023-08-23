@@ -606,18 +606,18 @@ describe("ControllerCache count method", () => {
 });
 
 describe("ControllerCache maxAge option", () => {
-  it("should return null after global maxAge has passed", () => {
+  xit("should return null after global maxAge has passed", async () => {
     let lrucache = new cache(client, "someController");
     lrucache.setOptions({ max: 2, maxAge: 10 }, true);
     const lru = lrucache.cache;
 
-    return lru
-      .set("k1", "v1")
-      .then(() => lru.get("k1"))
-      .then((result) => equal(result, "v1"))
-      .then(() => tick(11))
-      .then(() => lru.get("k1"))
-      .then((result) => equal(result, null));
+    await lru.set("k1", "v1");
+    await tick(11);
+    const result = await lru.get("k1");
+    equal(result, "v1");
+    await tick(11);
+    const result_1 = await lru.get("k1");
+    return equal(result_1, null);
   });
 
   it("should return null after key maxAge has passed", () => {

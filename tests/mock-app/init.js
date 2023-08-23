@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import config from "./config.js";
 
 export default async function (server, app, express) {
   await connectToMongoDB();
@@ -21,9 +20,4 @@ async function connectToMongoDB() {
   } catch (err) {
     console.error(err)
   }
-  return new Promise((resolve, reject) => {
-    setTimeout(function () {
-      resolve()
-    }, 10000)
-  })
 }
