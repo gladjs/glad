@@ -24,6 +24,10 @@ export { _time as time };
 const _timeEnd = disabled ? anon : timeEnd;
 export { _timeEnd as timeEnd };
 
+export function logPromise(promise) {
+  promise.then(console.log.bind(console)).catch(console.error.bind(console))
+} 
+
 export function verbose(...args) {
   if (disabled) return;
   if (process.verbose) {

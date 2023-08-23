@@ -13,7 +13,12 @@ export default class Initializer {
     try {
       let { default: initialize } = await import(join(this.project.projectPath, 'init.js'));
       verbose("Glad: Running Your Initialize Hook", 'yellow');
-      await initialize(this.server.server, this.server.app, this.server.express)
+      const promise = await initialize(this.server.server, this.server.app, this.server.express)
+
+      setTimeout(function () {
+        console.log(promise)
+      }, this.project.config.initializerTimeOut || 5000)
+
     } catch (err) {
       error('An error occured while initializing the app.');
       error('Be sure that your init.js file exists, and that you resolve the promise');

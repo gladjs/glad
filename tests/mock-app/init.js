@@ -7,13 +7,23 @@ export default async function (server, app, express) {
 
 async function connectToMongoDB() {
   try {
-    const { mongodb } = config;
-    const url = `mongodb://${mongodb.host}:${mongodb.port}/${mongodb.database}`;
+    const {
+      MONGODB_DATABASE = "development",
+      MONGODB_HOST = "127.0.0.1",
+      MONGODB_PORT = "27017"
+    } = process.env
+
+    const url = `mongodb://${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}`;
     mongoose.Promise = Promise;
     if (!mongoose.connection.db) {
-      await mongoose.connect(mongodb.url || url);
+      await mongoose.connect(url);
     }
   } catch (err) {
     console.error(err)
   }
+  return new Promise((resolve, reject) => {
+    setTimeout(function () {
+      resolve()
+    }, 10000)
+  })
 }
