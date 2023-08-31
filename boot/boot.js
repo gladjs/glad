@@ -162,7 +162,7 @@ export default class Boot {
         cookie: {
           name: process.env[cookie_env.name] || "glad.sid",
           secret: process.env[cookie_env.secret] || "keyboard cat",
-          secure: cookie_env.options.secure || true,
+          secure: cookie_env.options.secure,
         },
       });
 

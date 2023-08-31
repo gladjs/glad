@@ -1,6 +1,5 @@
 {
   "name": "glad",
-  "type": "module",
   "version": "2.0.0-beta.0",
   "description": "A robust Node Js API framework.",
   "main": "index.js",
