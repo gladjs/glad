@@ -6,7 +6,7 @@ import Router from "../classes/router.js";
 import Initializer from "./initialize.js";
 import redis from "redis";
 import session from "express-session";
-import sessionStore from "express-sessions";
+import RedisStore from "connect-redis";
 import { extend } from "../namespace/object.js";
 import Project from "../classes/project.js";
 import { join } from "path";
@@ -147,17 +147,15 @@ export default class Boot {
     }
 
     if (config.session) {
-      let options = extend(
-        {
-          instance: this.server.redis,
-          storage: "redis",
-        },
-        config.session
-      );
+      let store = new RedisStore({
+        client: Glad.cache.redis,
+        prefix: "session:",
+      })
 
       this._sessions = session({
+        store,
         secret: process.env[cookie_env.secret] || "keyboard cat",
-        resave: cookie_env.options.resave || false,
+        resave: cookie_env.options.resave,
         saveUninitialized: cookie_env.options.saveUninitialized,
         cookie: {
           name: process.env[cookie_env.name] || "glad.sid",
