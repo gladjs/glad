@@ -169,18 +169,7 @@ export default class Boot {
         debugMiddleware("Session:middleware");
         if (userSessionModule) {
           debugMiddleware("Session:middleware: using session.js");
-          userSessionModule(req, res, next).then((result) => {
-            if (result) {
-              debugMiddleware(
-                "Session:middleware: session.js > Use Glad Session"
-              );
-              this._sessions(req, res, next);
-            } else {
-              debugMiddleware(
-                "Session:middleware: session.js > Not using Session"
-              );
-            }
-          });
+          userSessionModule(req, res, next);
         } else {
           debugMiddleware("Session:middleware: Using Glad Session");
           this._sessions(req, res, next);

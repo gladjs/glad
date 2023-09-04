@@ -21,7 +21,7 @@ export default class RequestEnd {
         let code = res.statusCode;
         let _color = (code >= 400 && code < 500) ? "yellow" : (code >= 500) ? "red" : "green";
         log(
-          color(`← Response  ${req.id} ${res.statusCode} ${res.statusMessage} [${(res._headers && res._headers['content-length'] || 0)} bytes]`, _color)
+          color(`← Response  ${req.id || ""} ${res.statusCode || ""} ${res.statusMessage || ""} [${(res._headers && res._headers['content-length'] || 0)} bytes]`, _color)
         );
         timeEnd(`Timing    ${req.id}`);
       }
