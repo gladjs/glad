@@ -73,8 +73,8 @@ export default class Boot {
     const { config } = this.project
     const host = process.env[config.redis_env.host];
     const port = process.env[config.redis_env.port];
-
-    this.server.redis = createClient({ host, port });
+    const url = process.env[config.redis_env.url];
+    this.server.redis = createClient(url || { host, port });
     await this.server.redis.connect();
   }
 
