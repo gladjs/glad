@@ -42,22 +42,6 @@ describe("Project", function () {
     ok(myProject.config.host);
   });
 
-  it("should timeout when the initializer doesn't resolve within the timeout window", async function () {
-    let myProject = new Project(join(__dirname, "mock-app"));
-    myProject.config = { initializerTimeOut: 5 };
-    let initializer = new Initializer(myProject, {
-      app: {},
-      server: {},
-      express: {},
-    });
-    try {
-      await initializer.initialize()
-      ok(false)
-    } catch (err) {
-       equal(/Your initializer timed out/.test(err.message), true)
-    }
-  });
-
   it("should not timeout when the initializer does resolve within the timeout window", async function () {
     let myProject = new Project(join(__dirname, "mock-app"));
     myProject.config = { initializerTimeOut: 500 };

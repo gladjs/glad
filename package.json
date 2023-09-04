@@ -1,8 +1,9 @@
 {
   "name": "glad",
-  "version": "2.0.0-beta.0",
+  "version": "2.0.0-beta.1",
   "description": "A robust Node Js API framework.",
   "main": "index.js",
+  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -23,11 +24,11 @@
     "async": "3.2.4",
     "body-parser": "1.20.1",
     "chalk": "5.3.0",
+    "connect-redis": "^7.1.0",
     "debug": "4.3.4",
     "exists-sync": "0.0.4",
     "express": "4.18.2",
     "express-session": "^1.17.3",
-    "express-sessions": "^1.0.1",
     "lodash": "4.17.21",
     "optimist": "^0.5.2",
     "redis": "^4.6.7",
