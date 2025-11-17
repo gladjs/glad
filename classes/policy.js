@@ -42,6 +42,10 @@ module.exports = class Policy {
       const reject = this.rejector(req, res);
 
       for (let i = 0; i < this.policyList.length; i++) {
+        if (this.rejected) {
+          break;
+        }
+        
         const name = this.policyList[i];
 
         this.debug('Policy: lookup %s > %s', name, req.id);

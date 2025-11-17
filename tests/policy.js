@@ -79,5 +79,13 @@ describe("Policies", function () {
     assert(policySpy.calledOnce);
   });
 
-
+  it('should not run subsequent policies when one rejects', function () {
+    spy.reset();
+    policySpy.reset();
+    let req = {};
+    new Policy(policies, false, server, ['correctPolicy', 'rejectingPolicy', 'secondPolicy'], testController, 'myMethod').restrict(req, res);
+    assert(spy.notCalled);
+    assert(policySpy.calledOnce);
+    expect(req.ranPolicies).to.deep.equal(['correctPolicy', 'rejectingPolicy']);
+  });
 });
