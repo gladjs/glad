@@ -80,7 +80,7 @@ module.exports = class Policy {
       }
       this.debug('Policy:reject > %s', req.id);
       this.rejected = true;
-      return this.policies.onFailure(req, res, custom)
+      return this.policies.onFailure(req, res, custom);
     };
   }
 
