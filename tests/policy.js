@@ -62,5 +62,22 @@ describe("Policies", function () {
     assert(spy.calledOnce);
   });
 
+  it('should run each policy when an array is provided and only execute the controller after the last one accepts', function () {
+    spy.reset();
+    let req = {};
+    new Policy(policies, false, server, ['correctPolicy', 'secondPolicy'], testController, 'myMethod').restrict(req, res);
+    assert(spy.calledOnce);
+    expect(req.ranPolicies).to.deep.equal(['correctPolicy', 'secondPolicy']);
+  });
+
+  it('should not execute the controller if any policy in the array rejects', function () {
+    spy.reset();
+    policySpy.reset();
+    let req = {};
+    new Policy(policies, false, server, ['correctPolicy', 'rejectingPolicy', 'secondPolicy'], testController, 'myMethod').restrict(req, res);
+    assert(spy.notCalled);
+    assert(policySpy.calledOnce);
+  });
+
 
 });

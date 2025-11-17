@@ -12,26 +12,50 @@ module.exports = class Policy {
     this.policies = policies;
     this.logging = logging;
     this.debug = debug('glad');
+    this.policyList = this.normalizePolicies(policy);
+    this.rejected = false;
+  }
+
+  normalizePolicies (policy) {
+    if (!policy && policy !== 0) {
+      return [];
+    }
+
+    if (Array.isArray(policy)) {
+      return policy.filter(Boolean);
+    }
+
+    return [policy];
   }
 
   restrict (req, res) {
     this.debug('Policy: evaluating > %s', req.id);
     req.controller = this.controller.name;
     req.action = this.action;
+    this.rejected = false;
 
     if (this.logging) {
       chalk.info(`Routing   ${req.id} to ${this.controller.name}#${this.action}`);
     }
 
-    if (this.policy) {
-      this.debug('Policy: lookup %s > %s', this.policy, req.id);
-      if (this.policies[this.policy]) {
-        this.debug('Policy: apply %s > %s', this.policy, req.id);
-        this.policies[this.policy](req, res, this.acceptor(req, res), this.rejector(req, res));
-      } else {
-        this.debug('Policy: %s not found [error] %s', this.policy, req.id);
-        chalk.error(`Policy Error: ${req.id || ''} The policy "${this.policy}" does not exist, therefore the request was denied`);
-        this.policies.onFailure(req, res);
+    if (this.policyList.length) {
+      const reject = this.rejector(req, res);
+
+      for (let i = 0; i < this.policyList.length; i++) {
+        const name = this.policyList[i];
+
+        this.debug('Policy: lookup %s > %s', name, req.id);
+
+        if (!this.policies[name]) {
+          this.debug('Policy: %s not found [error] %s', name, req.id);
+          chalk.error(`Policy Error: ${req.id || ''} The policy "${name}" does not exist, therefore the request was denied`);
+          reject();
+          break;
+        }
+
+        const accept = this.acceptor(req, res, i);
+        this.debug('Policy: apply %s > %s', name, req.id);
+        this.policies[name](req, res, accept, reject);
       }
     } else {
       this.debug('Policy: no policy to apply > %s', req.id);
@@ -39,17 +63,24 @@ module.exports = class Policy {
     }
   }
 
-  acceptor (req, res) {
+  acceptor (req, res, index) {
     return () => {
       this.debug('Policy:accept > %s', req.id);
-      this.runControllerMethod(req, res);
+      const isLastPolicy = this.policyList.length === index + 1;
+      if (isLastPolicy && !this.rejected) {
+        this.runControllerMethod(req, res);
+      }
     };
   }
 
   rejector (req, res) {
     return (custom) => {
+      if (this.rejected) {
+        return;
+      }
       this.debug('Policy:reject > %s', req.id);
-      return this.policies.onFailure(req, res, custom)
+      this.rejected = true;
+      return this.policies.onFailure(req, res, custom);
     };
   }
 
