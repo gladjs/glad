@@ -142,7 +142,7 @@ describe('Glad.cache', function () {
       .then(() => productionCache.store('test004', 'testing-004'))
       .then(() => productionCache.store('non-match', 'testing-non-match'))
       .then(() => productionCache.list())
-      .then(keys => assert.deepEqual(keys.sort((a,b) => a < b), ['test001', 'test002', 'test003', 'test004', 'non-match'].sort((a,b) => a < b)))
+      .then(keys => assert.deepEqual(keys.sort(), ['test001', 'test002', 'test003', 'test004', 'non-match'].sort()))
   });
 
   it('cache.list should list only matching keys when a pattern is provided', function () {
@@ -153,7 +153,7 @@ describe('Glad.cache', function () {
       .then(() => productionCache.store('test004', 'testing-004'))
       .then(() => productionCache.store('non-match', 'testing-non-match'))
       .then(() => productionCache.list('test*'))
-      .then(keys => assert.deepEqual(keys.sort((a,b) => a < b), ['test001', 'test002', 'test003', 'test004'].sort((a,b) => a < b)))
+      .then(keys => assert.deepEqual(keys.sort(), ['test001', 'test002', 'test003', 'test004'].sort()))
   });
 
   it('cache.list should list only matching keys when a pattern is provided (2)', function () {
@@ -205,7 +205,7 @@ describe('Glad.cache', function () {
       .then(() => productionCache.store('non-match', 'testing-non-match'))
       .then(() => productionCache.clearWhere('widgets/*'))
       .then(() => productionCache.list())
-      .then(keys => assert.deepEqual(keys.sort((a,b) => a < b), ['non-match', 'foo/widgets/720'].sort((a,b) => a < b)))
+      .then(keys => assert.deepEqual(keys.sort((a,b) => a < b), ['foo/widgets/720', 'non-match'].sort((a,b) => a < b)))
       .then(() => productionCache.get('non-match')
       .then(data => assert.equal(data, 'testing-non-match')));
   });

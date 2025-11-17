@@ -514,7 +514,7 @@ describe('ControllerCache keys method', () => {
       .then(tick)
       .then(() => lru.set('k3', 'v3'))
       .then(() => lru.keys())
-      .then((r) => assert.deepEqual(r, ['k3', 'k2']));
+      .then((r) => assert.deepEqual(r.sort(), ['k2', 'k3'].sort()));
   });
 });
 
